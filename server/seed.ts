@@ -1,5 +1,5 @@
 import { db } from './db';
-import { roles, roleCreationPermissions, users, hotels, roomTypes, rooms, mealPlans, vouchers, menuCategories, menuItems, restaurantTables, halls, guests, transactions, vendors, maintenanceRequests, leavePolicies } from '@shared/schema';
+import { roles, roleCreationPermissions, users, hotels, roomTypes, rooms, mealPlans, vouchers, menuCategories, menuItems, restaurantTables, halls, guests, transactions, vendors, maintenanceRequests, leavePolicies, services } from '@shared/schema';
 import { hashPassword } from './auth';
 import { eq, and } from 'drizzle-orm';
 
@@ -710,6 +710,154 @@ async function seed() {
       console.log(`  ✓ Created maintenance request: ${request.title} (${request.location}) - Status: ${request.status}`);
     }
 
+    // Create services (amenities)
+    console.log('\n🛎️  Creating services (amenities)...');
+    
+    const servicesData = [
+      {
+        kind: 'laundry',
+        name: 'Laundry Service',
+        priceInhouse: '500.00',
+        priceWalkin: '700.00'
+      },
+      {
+        kind: 'laundry',
+        name: 'Dry Cleaning',
+        priceInhouse: '800.00',
+        priceWalkin: '1000.00'
+      },
+      {
+        kind: 'laundry',
+        name: 'Ironing Service',
+        priceInhouse: '200.00',
+        priceWalkin: '300.00'
+      },
+      {
+        kind: 'transportation',
+        name: 'Airport Pickup',
+        priceInhouse: '1500.00',
+        priceWalkin: '2000.00'
+      },
+      {
+        kind: 'transportation',
+        name: 'Airport Drop-off',
+        priceInhouse: '1500.00',
+        priceWalkin: '2000.00'
+      },
+      {
+        kind: 'transportation',
+        name: 'City Tour',
+        priceInhouse: '3000.00',
+        priceWalkin: '4000.00'
+      },
+      {
+        kind: 'spa',
+        name: 'Full Body Massage',
+        priceInhouse: '2500.00',
+        priceWalkin: '3500.00'
+      },
+      {
+        kind: 'spa',
+        name: 'Facial Treatment',
+        priceInhouse: '1800.00',
+        priceWalkin: '2500.00'
+      },
+      {
+        kind: 'spa',
+        name: 'Foot Massage',
+        priceInhouse: '1200.00',
+        priceWalkin: '1500.00'
+      },
+      {
+        kind: 'room_service',
+        name: 'Room Service Delivery',
+        priceInhouse: '200.00',
+        priceWalkin: '300.00'
+      },
+      {
+        kind: 'room_service',
+        name: 'Extra Bedding',
+        priceInhouse: '500.00',
+        priceWalkin: '700.00'
+      },
+      {
+        kind: 'room_service',
+        name: 'Extra Towels',
+        priceInhouse: '200.00',
+        priceWalkin: '300.00'
+      },
+      {
+        kind: 'parking',
+        name: 'Valet Parking',
+        priceInhouse: '300.00',
+        priceWalkin: '500.00'
+      },
+      {
+        kind: 'parking',
+        name: 'Covered Parking (per day)',
+        priceInhouse: '500.00',
+        priceWalkin: '800.00'
+      },
+      {
+        kind: 'business',
+        name: 'Business Center Access',
+        priceInhouse: '500.00',
+        priceWalkin: '1000.00'
+      },
+      {
+        kind: 'business',
+        name: 'Printing/Scanning Service',
+        priceInhouse: '100.00',
+        priceWalkin: '200.00'
+      },
+      {
+        kind: 'recreation',
+        name: 'Gym Access (per day)',
+        priceInhouse: '500.00',
+        priceWalkin: '800.00'
+      },
+      {
+        kind: 'recreation',
+        name: 'Swimming Pool Access',
+        priceInhouse: '800.00',
+        priceWalkin: '1200.00'
+      },
+      {
+        kind: 'other',
+        name: 'Pet Care Service',
+        priceInhouse: '1000.00',
+        priceWalkin: '1500.00'
+      },
+      {
+        kind: 'other',
+        name: 'Baby Sitting Service',
+        priceInhouse: '1500.00',
+        priceWalkin: '2000.00'
+      }
+    ];
+
+    let servicesCount = 0;
+    for (const service of servicesData) {
+      const existing = await db
+        .select()
+        .from(services)
+        .where(and(
+          eq(services.hotelId, testHotel.id),
+          eq(services.name, service.name)
+        ));
+
+      if (existing.length === 0) {
+        await db.insert(services).values({
+          hotelId: testHotel.id,
+          ...service
+        });
+        servicesCount++;
+        console.log(`  ✓ Created service: ${service.name} (${service.kind})`);
+      } else {
+        console.log(`  → Service already exists: ${service.name}`);
+      }
+    }
+
     console.log('\n✅ Database seeded successfully!');
     console.log('\n📝 Summary:');
     console.log('  - Hotel: Test Hotel');
@@ -722,6 +870,7 @@ async function seed() {
     console.log('  - Restaurant Tables: 10 tables (2-12 seating capacity)');
     console.log('  - Halls: 7 halls (20-200 capacity)');
     console.log('  - Vendors: 5 vendors');
+    console.log(`  - Services/Amenities: ${servicesCount} services`);
     console.log(`  - Financial Transactions: ${transactionCount} transactions (revenue, expenses, refunds)`);
     console.log(`  - Maintenance Requests: ${maintenanceCount} approved requests with photos`);
     process.exit(0);
