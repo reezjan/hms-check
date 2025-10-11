@@ -67,6 +67,7 @@ export default function BartenderDashboard() {
   const [wastageData, setWastageData] = useState({
     itemId: "",
     qty: "",
+    unit: "",
     reason: ""
   });
 
@@ -113,7 +114,7 @@ export default function BartenderDashboard() {
     onSuccess: () => {
       toast({ title: "Wastage recorded successfully" });
       setWastageDialogOpen(false);
-      setWastageData({ itemId: "", qty: "", reason: "" });
+      setWastageData({ itemId: "", qty: "", unit: "", reason: "" });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -167,6 +168,7 @@ export default function BartenderDashboard() {
     createWastageMutation.mutate({
       itemId: wastageData.itemId,
       qty: qty.toString(),
+      unit: wastageData.unit,
       reason: wastageData.reason.trim()
     });
   };
@@ -304,7 +306,14 @@ export default function BartenderDashboard() {
                   <Label>Inventory Item</Label>
                   <Select
                     value={wastageData.itemId}
-                    onValueChange={(value) => setWastageData({ ...wastageData, itemId: value })}
+                    onValueChange={(value) => {
+                      const selectedInventoryItem = (inventoryItems as InventoryItem[]).find(item => item.id === value);
+                      setWastageData({ 
+                        ...wastageData, 
+                        itemId: value,
+                        unit: selectedInventoryItem?.unit || 'piece'
+                      });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select item" />
