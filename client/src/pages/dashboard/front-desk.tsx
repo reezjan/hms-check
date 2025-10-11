@@ -199,6 +199,11 @@ export default function FrontDeskDashboard() {
     events: ['guest:created', 'guest:updated']
   });
 
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/room-service-charges"],
+    events: ['room-service-charge:created', 'room-service-charge:deleted']
+  });
+
   const cashDepositForm = useForm({
     defaultValues: {
       amount: "",
