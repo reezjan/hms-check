@@ -131,9 +131,26 @@ export const wsEvents = {
   stockUpdated: (hotelId: string, item: any) => 
     broadcastToRole(hotelId, ['storekeeper', 'manager', 'restaurant_bar_manager', 'housekeeping_supervisor'], 'stock:updated', item),
 
+  // Stock request updates
+  stockRequestCreated: (hotelId: string, request: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'stock-request:created', request),
+
+  stockRequestUpdated: (hotelId: string, request: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'stock-request:updated', request),
+
   // Leave request updates
+  leaveRequestCreated: (hotelId: string, leaveRequest: any) => 
+    broadcastToHotel(hotelId, 'leave:created', leaveRequest),
+
   leaveRequestUpdated: (hotelId: string, leaveRequest: any) => 
     broadcastToHotel(hotelId, 'leave:updated', leaveRequest),
+
+  // Service updates
+  serviceCreated: (hotelId: string, service: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'service:created', service),
+
+  serviceUpdated: (hotelId: string, service: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'service:updated', service),
 
   // Transaction updates
   transactionCreated: (hotelId: string, transaction: any) => 

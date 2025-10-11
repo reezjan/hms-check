@@ -2491,11 +2491,24 @@ export class DatabaseStorage implements IStorage {
 
   async getLeaveRequestsForManager(hotelId: string): Promise<LeaveRequest[]> {
     // Get all leave requests for the hotel (for manager overview)
-    return await db
-      .select()
+    const allRequests = await db
+      .select({
+        leaveRequest: leaveRequests,
+        user: users,
+        role: roles
+      })
       .from(leaveRequests)
+      .leftJoin(users, eq(leaveRequests.requestedBy, users.id))
+      .leftJoin(roles, eq(users.roleId, roles.id))
       .where(eq(leaveRequests.hotelId, hotelId))
       .orderBy(desc(leaveRequests.createdAt));
+
+    // Return leave requests with user info attached
+    return allRequests.map(r => ({
+      ...r.leaveRequest,
+      requestedByUser: r.user,
+      requestedByRole: r.role
+    })) as any;
   }
 
   async getPendingLeaveRequestsForManager(hotelId: string): Promise<LeaveRequest[]> {
@@ -2515,7 +2528,7 @@ export class DatabaseStorage implements IStorage {
     const approvalMapping: Record<string, string[]> = {
       'restaurant_bar_manager': ['waiter', 'cashier', 'bartender', 'kitchen_staff', 'barista'],
       'housekeeping_supervisor': ['housekeeping_staff'],
-      'security_head': ['surveillance_officer'],
+      'security_head': ['surveillance_officer', 'security_guard'],
       'manager': ['restaurant_bar_manager', 'housekeeping_supervisor', 'security_head', 'finance', 'front_desk', 'storekeeper'],
       'owner': ['manager']
     };
@@ -2572,7 +2585,7 @@ export class DatabaseStorage implements IStorage {
     const approvalMapping: Record<string, string[]> = {
       'restaurant_bar_manager': ['waiter', 'cashier', 'bartender', 'kitchen_staff', 'barista'],
       'housekeeping_supervisor': ['housekeeping_staff'],
-      'security_head': ['surveillance_officer'],
+      'security_head': ['surveillance_officer', 'security_guard'],
       'manager': ['restaurant_bar_manager', 'housekeeping_supervisor', 'security_head', 'finance', 'front_desk', 'storekeeper'],
       'owner': ['manager']
     };

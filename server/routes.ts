@@ -2024,6 +2024,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const serviceData = insertServiceSchema.parse(req.body);
       serviceData.hotelId = user.hotelId;
       const service = await storage.createService(serviceData);
+      
+      // Broadcast WebSocket event
+      wsEvents.serviceCreated(user.hotelId, service);
+      
       res.status(201).json(service);
     } catch (error) {
       res.status(400).json({ message: "Failed to create service" });
@@ -4761,6 +4765,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const leaveRequest = await storage.createLeaveRequest(leaveRequestData);
+      
+      // Broadcast WebSocket event to notify approvers
+      wsEvents.leaveRequestCreated(user.hotelId, leaveRequest);
+      
       res.status(201).json(leaveRequest);
     } catch (error) {
       console.error("Leave request creation error:", error);
@@ -5117,13 +5125,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User not associated with a hotel" });
       }
       
-      const userRole = user.role?.name || '';
-      const canRequestStock = ['bartender', 'kitchen_staff', 'barista'].includes(userRole);
-      
-      if (!canRequestStock) {
-        return res.status(403).json({ message: "Only bartender, kitchen staff, and barista can view their stock requests" });
-      }
-      
       const requests = await storage.getStockRequestsByUser(user.id);
       res.json(requests);
     } catch (error) {
@@ -5198,15 +5199,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userRole = user.role?.name || '';
-      const canRequestStock = ['bartender', 'kitchen_staff', 'barista'].includes(userRole);
       
-      if (!canRequestStock) {
-        return res.status(403).json({ message: "Only bartender, kitchen staff, and barista can request stock" });
-      }
-      
+      // Determine department based on role
       let department = '';
-      if (userRole === 'bartender' || userRole === 'kitchen_staff' || userRole === 'barista') {
+      if (['bartender', 'kitchen_staff', 'barista', 'waiter', 'cashier', 'restaurant_bar_manager'].includes(userRole)) {
         department = 'restaurant_bar';
+      } else if (['housekeeping_staff', 'housekeeping_supervisor'].includes(userRole)) {
+        department = 'housekeeping';
+      } else if (['security_guard', 'surveillance_officer', 'security_head'].includes(userRole)) {
+        department = 'security';
+      } else if (['storekeeper', 'finance', 'front_desk', 'manager', 'owner'].includes(userRole)) {
+        department = 'general';
+      } else {
+        return res.status(403).json({ message: "Your role is not authorized to request stock" });
       }
       
       const requestData = insertStockRequestSchema.parse({
@@ -5218,6 +5223,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const request = await storage.createStockRequest(requestData);
+      
+      // Broadcast WebSocket event to storekeeper and managers
+      wsEvents.stockRequestCreated(user.hotelId, request);
+      
       res.status(201).json(request);
     } catch (error) {
       console.error("Stock request creation error:", error);
@@ -5291,6 +5300,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Approve the request
       const approvedRequest = await storage.approveStockRequest(id, user.id);
       
+      // Broadcast WebSocket event
+      wsEvents.stockRequestUpdated(user.hotelId, approvedRequest);
+      
       res.json(approvedRequest);
     } catch (error) {
       console.error("Stock request approval error:", error);
@@ -5321,6 +5333,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const request = await storage.deliverStockRequest(id, user.id);
+      
+      // Broadcast WebSocket event
+      wsEvents.stockRequestUpdated(user.hotelId, request);
+      
       res.json(request);
     } catch (error) {
       console.error("Stock request delivery error:", error);
