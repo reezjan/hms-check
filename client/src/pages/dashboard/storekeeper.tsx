@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, CheckSquare, ClipboardList, Settings } from "lucide-react";
 import { useLocation } from "wouter";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function StorekeeperDashboard() {
   const [, setLocation] = useLocation();
@@ -22,6 +23,23 @@ export default function StorekeeperDashboard() {
 
   const { data: stockRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/stock-requests/pending"]
+  });
+
+  // Real-time updates for stock requests
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/stock-requests/pending"],
+    events: ['stock-request:created', 'stock-request:updated']
+  });
+
+  // Real-time updates for inventory and tasks
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/inventory-items"],
+    events: ['stock:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/tasks/my-tasks"],
+    events: ['task:created', 'task:updated', 'task:deleted']
   });
 
   const pendingTasks = tasks.filter((t: any) => t.status === 'pending');

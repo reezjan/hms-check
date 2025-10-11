@@ -41,6 +41,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 import { formatCurrency, getStatusColor, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Room, Task, RoomServiceOrder, MealPlan, Voucher, MenuItem, MenuCategory, RoomType } from "@shared/schema";
@@ -175,6 +176,27 @@ export default function FrontDeskDashboard() {
       description: "",
       priority: "medium"
     }
+  });
+
+  // Real-time updates for services and other resources
+  useRealtimeQuery({
+    queryKey: ["/api/services"],
+    events: ['service:created', 'service:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/rooms"],
+    events: ['room:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/transactions"],
+    events: ['transaction:created', 'transaction:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/guests"],
+    events: ['guest:created', 'guest:updated']
   });
 
   const cashDepositForm = useForm({

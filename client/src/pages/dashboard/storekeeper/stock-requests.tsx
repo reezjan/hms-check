@@ -6,6 +6,7 @@ import { CheckCircle, Clock, Truck, Package } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function StorekeeperStockRequests() {
   const { toast } = useToast();
@@ -17,6 +18,12 @@ export default function StorekeeperStockRequests() {
 
   const { data: pendingRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/stock-requests/pending"]
+  });
+
+  // Real-time updates for stock requests
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/stock-requests/pending"],
+    events: ['stock-request:created', 'stock-request:updated']
   });
 
   const approveMutation = useMutation({

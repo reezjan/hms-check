@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function LeaveApprovals() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
@@ -28,8 +29,7 @@ export default function LeaveApprovals() {
       });
       if (!response.ok) throw new Error("Failed to fetch pending leave requests");
       return response.json();
-    },
-    refetchInterval: 3000
+    }
   });
 
   // Fetch all leave requests for overview
@@ -41,8 +41,18 @@ export default function LeaveApprovals() {
       });
       if (!response.ok) throw new Error("Failed to fetch leave requests");
       return response.json();
-    },
-    refetchInterval: 3000
+    }
+  });
+
+  // Real-time updates for leave requests
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/leave-requests/pending-approvals"],
+    events: ['leave:created', 'leave:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/leave-requests"],
+    events: ['leave:created', 'leave:updated']
   });
 
   // Approve leave request mutation
