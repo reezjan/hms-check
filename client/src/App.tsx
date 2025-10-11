@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ConfirmDialogProvider } from "@/hooks/use-confirm-dialog";
 import { ProtectedRoute } from "./lib/protected-route";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
@@ -100,6 +101,7 @@ import MyProfile from "@/pages/dashboard/my-profile";
 import HallBookings from "@/pages/dashboard/hall-bookings";
 import HallCalendar from "@/pages/dashboard/hall-calendar";
 import BookingDetail from "@/pages/dashboard/booking-detail";
+import LeaveRequests from "@/pages/dashboard/leave-requests";
 
 function Router() {
   return (
@@ -220,7 +222,7 @@ function Router() {
       <ProtectedRoute path="/storekeeper/my-tasks" component={StorekeeperMyTasks} allowedRoles={["storekeeper"]} />
       
       {/* Leave Requests - accessible to all staff members */}
-      <ProtectedRoute path="/leave-requests" component={RestaurantLeaveRequests} allowedRoles={["housekeeping_staff", "kitchen_staff", "bartender", "barista", "security_guard", "surveillance_officer", "waiter", "storekeeper", "restaurant_bar_manager", "cashier", "finance", "front_desk"]} />
+      <ProtectedRoute path="/leave-requests" component={LeaveRequests} allowedRoles={["manager", "housekeeping_staff", "kitchen_staff", "bartender", "barista", "security_guard", "surveillance_officer", "waiter", "storekeeper", "restaurant_bar_manager", "cashier", "finance", "front_desk"]} />
       
       {/* My Profile - accessible to all authenticated users */}
       <ProtectedRoute path="/my-profile" component={MyProfile} allowedRoles={["super_admin", "owner", "manager", "housekeeping_supervisor", "housekeeping_staff", "restaurant_bar_manager", "waiter", "kitchen_staff", "bartender", "barista", "security_head", "security_guard", "surveillance_officer", "finance", "front_desk", "cashier", "storekeeper"]} />
@@ -237,6 +239,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          <ConfirmDialogProvider />
           <Router />
         </TooltipProvider>
       </AuthProvider>
