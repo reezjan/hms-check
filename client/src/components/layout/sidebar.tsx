@@ -80,7 +80,8 @@ export function Sidebar({ onItemClick }: SidebarProps = {}) {
         'menu': '/restaurant-bar-manager/menu-management',
         'maintenance': '/restaurant-bar-manager/maintenance-requests',
         'leave': '/restaurant-bar-manager/leave-requests',
-        'leave-approvals': '/restaurant-bar-manager/leave-approvals'
+        'leave-approvals': '/restaurant-bar-manager/leave-approvals',
+        'wastage': '/restaurant-bar-manager/wastage'
       },
       'security_head': {
         'dashboard': '/security-head',

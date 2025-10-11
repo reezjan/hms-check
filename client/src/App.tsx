@@ -53,6 +53,7 @@ import RestaurantInventoryTracking from "@/pages/dashboard/restaurant-bar-manage
 import RestaurantDutyTracking from "@/pages/dashboard/restaurant-bar-manager/duty-tracking";
 import RestaurantLeaveRequests from "@/pages/dashboard/restaurant-bar-manager/leave-requests";
 import RestaurantMaintenanceRequests from "@/pages/dashboard/restaurant-bar-manager/maintenance-requests";
+import RestaurantBarManagerWastage from "@/pages/dashboard/restaurant-bar-manager/wastage";
 import WaiterDashboard from "@/pages/dashboard/waiter";
 import WaiterMyTasks from "@/pages/dashboard/waiter/my-tasks";
 import WaiterMaintenance from "@/pages/dashboard/waiter/maintenance";
@@ -160,6 +161,7 @@ function Router() {
       <ProtectedRoute path="/restaurant-bar-manager/leave-requests" component={RestaurantLeaveRequests} allowedRoles={["restaurant_bar_manager"]} />
       <ProtectedRoute path="/restaurant-bar-manager/leave-approvals" component={ManagerLeaveApprovals} allowedRoles={["restaurant_bar_manager"]} />
       <ProtectedRoute path="/restaurant-bar-manager/maintenance-requests" component={RestaurantMaintenanceRequests} allowedRoles={["restaurant_bar_manager"]} />
+      <ProtectedRoute path="/restaurant-bar-manager/wastage" component={RestaurantBarManagerWastage} allowedRoles={["restaurant_bar_manager"]} />
       <ProtectedRoute path="/waiter" component={WaiterDashboard} allowedRoles={["waiter"]} />
       <ProtectedRoute path="/waiter/my-tasks" component={WaiterMyTasks} allowedRoles={["waiter"]} />
       <ProtectedRoute path="/waiter/maintenance" component={WaiterMaintenance} allowedRoles={["waiter"]} />

@@ -298,7 +298,8 @@ export const NAVIGATION_ITEMS = {
     { icon: 'Table', label: 'Table Setup', id: 'tables' },
     { icon: 'Wrench', label: 'Maintenance Requests', id: 'maintenance' },
     { icon: 'FileCheck', label: 'Leave Requests', id: 'leave' },
-    { icon: 'CheckCircle', label: 'Leave Approvals', id: 'leave-approvals' }
+    { icon: 'CheckCircle', label: 'Leave Approvals', id: 'leave-approvals' },
+    { icon: 'Trash2', label: 'Staff Wastage', id: 'wastage' }
   ],
   [ROLES.WAITER]: [
     { icon: 'LayoutDashboard', label: 'Dashboard', id: 'dashboard' },
