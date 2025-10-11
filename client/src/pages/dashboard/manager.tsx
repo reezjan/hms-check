@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -6,34 +7,54 @@ import { DataTable } from "@/components/tables/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, CreditCard, Tag, DoorOpen, Receipt, TrendingUp, BarChart3, Building2 } from "lucide-react";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 export default function ManagerDashboard() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const ws = useWebSocket();
   
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"],
-    refetchInterval: 3000
+    queryKey: ["/api/hotels/current/users"]
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"],
-    refetchInterval: 3000
+    queryKey: ["/api/attendance/daily"]
   });
 
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"],
-    refetchInterval: 3000
+    queryKey: ["/api/hotels/current/transactions"]
   });
 
   const { data: vouchers = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vouchers"],
-    refetchInterval: 3000
+    queryKey: ["/api/hotels/current/vouchers"]
   });
 
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"],
-    refetchInterval: 3000
+    queryKey: ["/api/hotels/current/rooms"]
   });
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    const unsubscribers = [
+      ws.on('transaction:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('transaction:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('room:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/rooms"] });
+      }),
+      ws.on('attendance:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/attendance/daily"] });
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [ws, queryClient]);
 
   const cashTransactions = transactions.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + Number(t.amount), 0);
   const posTransactions = transactions.filter(t => t.paymentMethod === 'pos').reduce((sum, t) => sum + Number(t.amount), 0);

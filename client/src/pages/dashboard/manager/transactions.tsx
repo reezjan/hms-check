@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { DataTable } from "@/components/tables/data-table";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Receipt, Plus, Filter, CreditCard, Banknote, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 interface Transaction {
   id: string;
@@ -34,6 +35,7 @@ export default function TransactionsPage() {
   });
 
   const queryClient = useQueryClient();
+  const ws = useWebSocket();
 
   // Fetch transactions
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
@@ -44,9 +46,24 @@ export default function TransactionsPage() {
         throw new Error("Failed to fetch transactions");
       }
       return response.json();
-    },
-    refetchInterval: 3000
+    }
   });
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    const unsubscribers = [
+      ws.on('transaction:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('transaction:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [ws, queryClient]);
 
   // Create transaction mutation
   const createTransactionMutation = useMutation({

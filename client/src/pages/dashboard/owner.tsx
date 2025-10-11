@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -6,9 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Bed, Users, TrendingUp, Package, AlertTriangle, Building2, Settings, Receipt, Shield } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useWebSocket } from "@/hooks/use-websocket";
+import DateConverter from "@remotemerge/nepali-date-converter";
 
 export default function OwnerDashboard() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const ws = useWebSocket();
   
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"]
@@ -34,9 +39,66 @@ export default function OwnerDashboard() {
     queryKey: ["/api/attendance/daily"]
   });
 
-  // Calculate real metrics without fake trends
-  const totalRevenue = transactions
-    .filter(t => t.txnType === 'revenue')
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    const unsubscribers = [
+      ws.on('transaction:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('transaction:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('room:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/rooms"] });
+      }),
+      ws.on('stock:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/inventory-items"] });
+      }),
+      ws.on('attendance:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/attendance/daily"] });
+      }),
+      ws.on('guest:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current"] });
+      }),
+      ws.on('guest:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current"] });
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [ws, queryClient]);
+
+  // Get current Nepali month and year
+  const currentNepaliDate = useMemo(() => {
+    const today = new Date();
+    const converter = new DateConverter(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+    return converter.toBs();
+  }, []);
+
+  // Filter transactions for current Nepali month only (monthly reset)
+  const currentMonthTransactions = useMemo(() => {
+    return transactions.filter(t => {
+      try {
+        const txnDate = new Date(t.createdAt);
+        const txnConverter = new DateConverter(`${txnDate.getFullYear()}-${String(txnDate.getMonth() + 1).padStart(2, '0')}-${String(txnDate.getDate()).padStart(2, '0')}`);
+        const txnNepaliDate = txnConverter.toBs();
+        
+        // Check if transaction is in current Nepali month and year
+        return txnNepaliDate.year === currentNepaliDate.year && 
+               txnNepaliDate.month === currentNepaliDate.month;
+      } catch (error) {
+        console.error('Error converting transaction date:', error);
+        return false;
+      }
+    });
+  }, [transactions, currentNepaliDate]);
+
+  // Calculate revenue for current Nepali month only
+  // Include all revenue-generating transaction types: revenue, cash_in, pos_in, fonepay_in
+  const totalRevenue = currentMonthTransactions
+    .filter(t => ['revenue', 'cash_in', 'pos_in', 'fonepay_in'].includes(t.txnType))
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
   
   const occupiedRooms = rooms.filter(r => r.isOccupied).length;

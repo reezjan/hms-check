@@ -18,11 +18,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn, formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 export default function RoomOccupancy() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const ws = useWebSocket();
   
   const [checkInDialog, setCheckInDialog] = useState(false);
   const [checkOutDialog, setCheckOutDialog] = useState(false);
@@ -89,6 +91,26 @@ export default function RoomOccupancy() {
     queryKey: ["/api/hotels/current/transactions"],
     enabled: !!user?.hotelId
   });
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    const unsubscribers = [
+      ws.on('room:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/rooms"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/reservations"] });
+      }),
+      ws.on('transaction:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('transaction:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [ws, queryClient]);
 
   // Helper functions
   const resetRoomTypeForm = () => {

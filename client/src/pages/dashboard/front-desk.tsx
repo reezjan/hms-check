@@ -428,7 +428,7 @@ export default function FrontDeskDashboard() {
             guestName: data.guestName,
             checkInDate: selectedRoom?.occupantDetails?.checkInDate,
             checkOutDate: selectedRoom?.occupantDetails?.checkOutDate,
-            numberOfDays: data.billingDetails?.numberOfDays || 1,
+            numberOfNights: data.billingDetails?.numberOfNights || 1,
             subtotal: data.billingDetails?.subtotal || 0,
             roomCharges: data.billingDetails?.totalRoomCharges || 0,
             mealPlanCharges: data.billingDetails?.totalMealPlanCharges || 0,
@@ -498,7 +498,7 @@ export default function FrontDeskDashboard() {
               guestName: data.guestName,
               checkInDate: selectedRoom?.occupantDetails?.checkInDate,
               checkOutDate: selectedRoom?.occupantDetails?.checkOutDate,
-              numberOfDays: data.billingDetails?.numberOfDays || 1,
+              numberOfNights: data.billingDetails?.numberOfNights || 1,
               subtotal: data.billingDetails?.subtotal || 0,
               roomCharges: data.billingDetails?.totalRoomCharges || 0,
               mealPlanCharges: data.billingDetails?.totalMealPlanCharges || 0,
@@ -621,25 +621,39 @@ export default function FrontDeskDashboard() {
 
   // Calculate checkout bill with taxes
   const calculateCheckoutBill = (room: any) => {
-    const roomPricePerDay = room.occupantDetails?.roomPrice ? Number(room.occupantDetails.roomPrice) : 0;
+    const roomPricePerNight = room.occupantDetails?.roomPrice ? Number(room.occupantDetails.roomPrice) : 0;
     const checkInDate = room.occupantDetails?.checkInDate ? new Date(room.occupantDetails.checkInDate) : null;
     // Use actual checkout date (today) instead of booked checkout date for accurate billing
     const actualCheckOutDate = new Date();
     
-    // Calculate number of NIGHTS based on actual stay duration with 2-hour grace period
-    let numberOfDays = 1;
+    // Calculate number of NIGHTS with 2pm cutoff rule
+    let numberOfNights = 1;
     if (checkInDate) {
-      const timeDiff = actualCheckOutDate.getTime() - checkInDate.getTime();
-      // Add 2-hour grace period: if guest checks out within 2 hours past checkout time, don't charge extra night
-      const gracePeriodMs = 2 * 60 * 60 * 1000; // 2 hours
-      const adjustedTimeDiff = Math.max(0, timeDiff - gracePeriodMs);
-      // Use ceil for hotel billing: check-in Mon 2pm, checkout Wed 12pm (~46hrs after grace) = 2 nights
-      numberOfDays = Math.max(1, Math.ceil(adjustedTimeDiff / (1000 * 3600 * 24)));
+      // Get date-only components (ignoring time) for check-in and check-out
+      const checkInDateOnly = new Date(checkInDate);
+      checkInDateOnly.setHours(0, 0, 0, 0);
+      
+      const checkOutDateOnly = new Date(actualCheckOutDate);
+      checkOutDateOnly.setHours(0, 0, 0, 0);
+      
+      // Calculate base nights (full days between dates)
+      const daysDiff = Math.floor((checkOutDateOnly.getTime() - checkInDateOnly.getTime()) / (1000 * 3600 * 24));
+      numberOfNights = Math.max(1, daysDiff);
+      
+      // Apply 2pm cutoff rule: if check-out time is after 2pm (14:00), charge an extra night
+      const checkOutHour = actualCheckOutDate.getHours();
+      const checkOutMinute = actualCheckOutDate.getMinutes();
+      const checkOutTimeInMinutes = checkOutHour * 60 + checkOutMinute;
+      const cutoffTimeInMinutes = 14 * 60; // 2pm = 14:00
+      
+      if (checkOutTimeInMinutes > cutoffTimeInMinutes) {
+        numberOfNights += 1;
+      }
     }
     
-    const totalRoomCharges = roomPricePerDay * numberOfDays;
-    const mealPlanCostPerDay = room.occupantDetails?.mealPlan?.totalCost || 0;
-    const totalMealPlanCharges = parseFloat(mealPlanCostPerDay.toString()) * numberOfDays;
+    const totalRoomCharges = roomPricePerNight * numberOfNights;
+    const mealPlanCostPerNight = room.occupantDetails?.mealPlan?.totalCost || 0;
+    const totalMealPlanCharges = parseFloat(mealPlanCostPerNight.toString()) * numberOfNights;
     const foodCharges = room.occupantDetails?.foodCharges || [];
     const totalFoodCharges = foodCharges.reduce((sum: number, charge: any) => sum + parseFloat(charge.totalAmount || 0), 0);
     
@@ -740,9 +754,9 @@ export default function FrontDeskDashboard() {
       advancePayment: totalAdvancePayment,
       grandTotal,
       finalAmount,
-      numberOfDays,
+      numberOfNights,
       totalRoomCharges,
-      mealPlanCostPerDay: parseFloat(mealPlanCostPerDay.toString()),
+      mealPlanCostPerNight: parseFloat(mealPlanCostPerNight.toString()),
       totalMealPlanCharges: parseFloat(totalMealPlanCharges.toString()),
       totalFoodCharges,
       totalServiceCharges,
@@ -1014,18 +1028,18 @@ export default function FrontDeskDashboard() {
             <div class="bold">CHECK-OUT INFORMATION</div>
             <div>Check-in: ${guest?.checkInDate ? new Date(guest.checkInDate).toLocaleDateString() : 'N/A'}</div>
             <div>Check-out: ${new Date().toLocaleDateString()}</div>
-            <div>Duration: ${billCalc.numberOfDays} night(s)</div>
+            <div>Duration: ${billCalc.numberOfNights} ${billCalc.numberOfNights === 1 ? 'night' : 'nights'}</div>
             <div class="line"></div>
             <div class="bold">CHARGES SUMMARY</div>
             ${billCalc.totalRoomCharges > 0 ? `
               <div class="item-row">
-                <span>Room (${billCalc.numberOfDays}x${formatCurrency(Number(guest?.roomPrice || 0))}):</span>
+                <span>Room (${billCalc.numberOfNights}x${formatCurrency(Number(guest?.roomPrice || 0))}):</span>
                 <span>${formatCurrency(billCalc.totalRoomCharges)}</span>
               </div>
             ` : ''}
             ${billCalc.totalMealPlanCharges > 0 ? `
               <div class="item-row">
-                <span>Meal Plan (${billCalc.numberOfDays}x${formatCurrency(billCalc.mealPlanCostPerDay)}):</span>
+                <span>Meal Plan (${billCalc.numberOfNights}x${formatCurrency(billCalc.mealPlanCostPerNight)}):</span>
                 <span>${formatCurrency(billCalc.totalMealPlanCharges)}</span>
               </div>
             ` : ''}
@@ -1447,7 +1461,7 @@ export default function FrontDeskDashboard() {
                               // Create a reservation for this checked-in room
                               try {
                                 const occupantDetails = room.occupantDetails as any;
-                                const newReservation = await apiRequest("POST", "/api/reservations", {
+                                const response = await apiRequest("POST", "/api/reservations", {
                                   hotelId: user?.hotelId,
                                   guestName: occupantDetails?.name || 'Guest',
                                   guestEmail: occupantDetails?.email || '',
@@ -1464,6 +1478,7 @@ export default function FrontDeskDashboard() {
                                   createdBy: user?.id
                                 });
                                 
+                                const newReservation = await response.json();
                                 setSelectedReservationForService(newReservation.id);
                                 queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/reservations"] });
                                 setIsServiceChargeModalOpen(true);
@@ -2058,7 +2073,7 @@ export default function FrontDeskDashboard() {
 
                   {(() => {
                     const billCalc = calculateCheckoutBill(selectedRoom);
-                    const roomPricePerDay = selectedRoom.occupantDetails?.roomPrice || 0;
+                    const roomPricePerNight = selectedRoom.occupantDetails?.roomPrice || 0;
 
                     return (
                       <Card>
@@ -2067,12 +2082,12 @@ export default function FrontDeskDashboard() {
                         </CardHeader>
                         <CardContent className="space-y-2">
                           <div className="flex justify-between items-start gap-2">
-                            <span className="text-sm sm:text-base">Room Charges ({billCalc.numberOfDays} {billCalc.numberOfDays === 1 ? 'day' : 'days'} × NPR {parseFloat(roomPricePerDay.toString()).toFixed(2)})</span>
+                            <span className="text-sm sm:text-base">Room Charges ({billCalc.numberOfNights} {billCalc.numberOfNights === 1 ? 'night' : 'nights'} × NPR {parseFloat(roomPricePerNight.toString()).toFixed(2)})</span>
                             <span className="font-medium text-sm sm:text-base shrink-0" data-testid="checkout-room-price">NPR {billCalc.totalRoomCharges.toFixed(2)}</span>
                           </div>
                           {billCalc.totalMealPlanCharges > 0 && (
                             <div className="flex justify-between items-start gap-2">
-                              <span className="text-sm sm:text-base">Meal Plan Charges ({billCalc.numberOfDays} {billCalc.numberOfDays === 1 ? 'day' : 'days'} × NPR {billCalc.mealPlanCostPerDay.toFixed(2)})</span>
+                              <span className="text-sm sm:text-base">Meal Plan Charges ({billCalc.numberOfNights} {billCalc.numberOfNights === 1 ? 'night' : 'nights'} × NPR {billCalc.mealPlanCostPerNight.toFixed(2)})</span>
                               <span className="font-medium text-sm sm:text-base shrink-0" data-testid="checkout-meal-price">NPR {billCalc.totalMealPlanCharges.toFixed(2)}</span>
                             </div>
                           )}

@@ -1,11 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, TrendingUp, CreditCard, Receipt } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useWebSocket } from "@/hooks/use-websocket";
 
 export default function FinancialOverview() {
+  const queryClient = useQueryClient();
+  const ws = useWebSocket();
+
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"]
   });
@@ -13,6 +18,22 @@ export default function FinancialOverview() {
   const { data: payments = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/payments"]
   });
+
+  // Real-time updates via WebSocket
+  useEffect(() => {
+    const unsubscribers = [
+      ws.on('transaction:created', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      }),
+      ws.on('transaction:updated', () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
+  }, [ws, queryClient]);
 
   // Calculate real financial metrics
   // Calculate total revenue from all income transactions
