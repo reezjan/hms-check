@@ -48,8 +48,15 @@ export function RoomServiceChargeModal({ open, onOpenChange, reservationId, room
 
   const selectedService = services.find(s => s.id === selectedServiceId);
   const selectedReservation = reservations.find(r => r.id === reservationId);
+  
+  // Determine guest type from multiple sources for accurate pricing
+  // Priority: 1) Reservation guestType, 2) Room occupant guestType, 3) Default to walk-in
+  const selectedRoom = rooms.find(r => r.id === roomId);
+  const roomOccupantGuestType = selectedRoom?.occupantDetails?.guestType;
+  const reservationGuestType = selectedReservation?.guestType;
+  
   // Check guestType to determine pricing: 'inhouse' uses in-house price, 'walkin' or undefined uses walk-in price
-  const isInHouseGuest = selectedReservation?.guestType === 'inhouse';
+  const isInHouseGuest = (reservationGuestType === 'inhouse') || (roomOccupantGuestType === 'inhouse');
 
   // Determine service type and calculation method based on user requirements
   const getServiceType = (serviceKind: string) => {
