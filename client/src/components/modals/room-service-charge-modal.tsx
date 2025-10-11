@@ -30,6 +30,7 @@ export function RoomServiceChargeModal({ open, onOpenChange, reservationId, room
   const [days, setDays] = useState("");
   const [notes, setNotes] = useState("");
   const [calculatedTotal, setCalculatedTotal] = useState(0);
+  const [serviceSearchQuery, setServiceSearchQuery] = useState("");
 
   const { data: services = [] } = useQuery<any[]>({
     queryKey: ["/api/services"],
@@ -49,14 +50,9 @@ export function RoomServiceChargeModal({ open, onOpenChange, reservationId, room
   const selectedService = services.find(s => s.id === selectedServiceId);
   const selectedReservation = reservations.find(r => r.id === reservationId);
   
-  // Determine guest type from multiple sources for accurate pricing
-  // Priority: 1) Reservation guestType, 2) Room occupant guestType, 3) Default to walk-in
-  const selectedRoom = rooms.find(r => r.id === roomId);
-  const roomOccupantGuestType = selectedRoom?.occupantDetails?.guestType;
-  const reservationGuestType = selectedReservation?.guestType;
-  
-  // Check guestType to determine pricing: 'inhouse' uses in-house price, 'walkin' or undefined uses walk-in price
-  const isInHouseGuest = (reservationGuestType === 'inhouse') || (roomOccupantGuestType === 'inhouse');
+  // Always use in-house pricing for all services
+  // Services should always be charged at in-house rates regardless of guest type
+  const isInHouseGuest = true;
 
   // Determine service type and calculation method based on user requirements
   const getServiceType = (serviceKind: string) => {
@@ -170,7 +166,18 @@ export function RoomServiceChargeModal({ open, onOpenChange, reservationId, room
     setDays("");
     setNotes("");
     setCalculatedTotal(0);
+    setServiceSearchQuery("");
   };
+
+  // Filter services based on search query
+  const filteredServices = services.filter((service) => {
+    if (!serviceSearchQuery.trim()) return true;
+    const query = serviceSearchQuery.toLowerCase();
+    return (
+      service.name?.toLowerCase().includes(query) ||
+      service.kind?.toLowerCase().includes(query)
+    );
+  });
 
   const handleSubmit = () => {
     if (!selectedService || !reservationId) {
@@ -273,11 +280,27 @@ export function RoomServiceChargeModal({ open, onOpenChange, reservationId, room
                 <SelectValue placeholder="Select service" />
               </SelectTrigger>
               <SelectContent>
-                {services.map((service) => (
-                  <SelectItem key={service.id} value={service.id}>
-                    {service.name} ({service.kind})
-                  </SelectItem>
-                ))}
+                <div className="px-2 pb-2 sticky top-0 bg-background z-10">
+                  <Input
+                    placeholder="Search services..."
+                    value={serviceSearchQuery}
+                    onChange={(e) => setServiceSearchQuery(e.target.value)}
+                    className="h-8 text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  />
+                </div>
+                {filteredServices.length > 0 ? (
+                  filteredServices.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name} ({service.kind})
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                    No services found
+                  </div>
+                )}
               </SelectContent>
             </Select>
           </div>
