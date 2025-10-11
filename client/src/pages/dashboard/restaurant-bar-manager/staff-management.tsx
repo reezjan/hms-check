@@ -109,7 +109,15 @@ export default function RestaurantStaffManagement() {
   };
 
   const columns = [
-    { key: "username", label: "Name", sortable: true },
+    { 
+      key: "fullName", 
+      label: "Name", 
+      sortable: true,
+      render: (value: any, row: any) => {
+        // Use fullName if available, otherwise fall back to username
+        return value || row.username || '-';
+      }
+    },
     { 
       key: "role", 
       label: "Role", 
@@ -124,6 +132,12 @@ export default function RestaurantStaffManagement() {
           <span>{value?.name?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
         </div>
       )
+    },
+    { 
+      key: "address", 
+      label: "Address", 
+      sortable: true,
+      render: (value: any) => value || '-'
     },
     { key: "email", label: "Email", sortable: true },
     { key: "phone", label: "Phone", sortable: true },

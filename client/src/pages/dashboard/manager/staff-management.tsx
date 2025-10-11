@@ -182,6 +182,18 @@ export default function StaffManagement() {
 
   const staffColumns = [
     { key: "username", label: "Username", sortable: true },
+    { 
+      key: "fullName", 
+      label: "Name", 
+      sortable: true,
+      render: (value: any, row: any) => value || row.username || "-"
+    },
+    { 
+      key: "address", 
+      label: "Address", 
+      sortable: true,
+      render: (value: any) => value || "-"
+    },
     { key: "email", label: "Email", sortable: true },
     { key: "phone", label: "Phone", sortable: true },
     { 

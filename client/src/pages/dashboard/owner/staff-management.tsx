@@ -25,6 +25,7 @@ const staffSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(50, "First name must be less than 50 characters"),
   lastName: z.string().min(1, "Last name is required").max(50, "Last name must be less than 50 characters"),
   phone: z.string().min(1, "Phone number is required").max(20, "Phone number must be less than 20 characters"),
+  address: z.string().optional(),
   role: z.string().min(1, "Role is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password confirmation is required")
@@ -73,6 +74,7 @@ export default function StaffManagement() {
       firstName: "",
       lastName: "",
       phone: "",
+      address: "",
       role: "",
       password: "",
       confirmPassword: ""
@@ -87,6 +89,7 @@ export default function StaffManagement() {
       firstName: "",
       lastName: "",
       phone: "",
+      address: "",
       role: ""
     }
   });
@@ -100,6 +103,7 @@ export default function StaffManagement() {
         firstName: selectedStaff.firstName || "",
         lastName: selectedStaff.lastName || "",
         phone: selectedStaff.phone || "",
+        address: selectedStaff.address || "",
         role: selectedStaff.role?.name || ""
       });
     }
@@ -249,6 +253,19 @@ export default function StaffManagement() {
   const staffColumns = [
     { key: "username", label: "Username", sortable: true },
     { 
+      key: "fullName", 
+      label: "Name", 
+      sortable: true,
+      render: (value: any, row: any) => {
+        // Use fullName if available, otherwise combine firstName and lastName
+        if (value) return value;
+        if (row.firstName || row.lastName) {
+          return `${row.firstName || ''} ${row.lastName || ''}`.trim() || '-';
+        }
+        return '-';
+      }
+    },
+    { 
       key: "role", 
       label: "Role", 
       sortable: true, 
@@ -257,6 +274,12 @@ export default function StaffManagement() {
           {value?.name?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'No Role'}
         </Badge>
       )
+    },
+    { 
+      key: "address", 
+      label: "Address", 
+      sortable: true,
+      render: (value: any) => value || '-'
     },
     { key: "email", label: "Email", sortable: true },
     { key: "phone", label: "Phone", sortable: true },

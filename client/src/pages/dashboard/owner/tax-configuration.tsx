@@ -109,18 +109,22 @@ export default function TaxConfiguration() {
   };
 
   const calculateTaxExample = (amount: number) => {
-    let total = amount;
+    let runningTotal = amount;
     let breakdown: any = { subtotal: amount };
 
-    Object.entries(taxSettings).forEach(([key, tax]) => {
-      if (tax.isActive) {
-        const taxAmount = (amount * tax.percent) / 100;
+    // Apply taxes in order: VAT -> Service Tax -> Luxury Tax (cascading)
+    const taxOrder = ['vat', 'service_tax', 'luxury_tax'];
+    
+    taxOrder.forEach((key) => {
+      const tax = taxSettings[key];
+      if (tax && tax.isActive) {
+        const taxAmount = Math.round((runningTotal * tax.percent) / 100 * 100) / 100;
         breakdown[key] = taxAmount;
-        total += taxAmount;
+        runningTotal = Math.round((runningTotal + taxAmount) * 100) / 100;
       }
     });
 
-    return { total, breakdown };
+    return { total: runningTotal, breakdown };
   };
 
   const exampleAmount = 1000;

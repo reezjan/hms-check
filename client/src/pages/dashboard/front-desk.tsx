@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -40,6 +40,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useWebSocket } from "@/hooks/use-websocket";
 import { formatCurrency, getStatusColor, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Room, Task, RoomServiceOrder, MealPlan, Voucher, MenuItem, MenuCategory, RoomType } from "@shared/schema";
@@ -49,6 +50,7 @@ export default function FrontDeskDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const ws = useWebSocket();
   const [, setLocation] = useLocation();
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
@@ -196,6 +198,55 @@ export default function FrontDeskDashboard() {
       specialRequests: ""
     }
   });
+
+  // Real-time WebSocket updates for front desk
+  useEffect(() => {
+    if (!user?.hotelId) return;
+
+    // Listen for room status updates
+    const unsubRoomUpdate = ws.on('room:updated', (room) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels", user?.hotelId, "rooms"] });
+      toast({ 
+        title: "Room Updated", 
+        description: `Room ${room.roomNumber} status has been updated`
+      });
+    });
+
+    // Listen for guest updates
+    const unsubGuestCreated = ws.on('guest:created', (guest) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/guests"] });
+      toast({ 
+        title: "New Guest", 
+        description: `${guest.name} has been added`
+      });
+    });
+
+    const unsubGuestUpdated = ws.on('guest:updated', (guest) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/guests"] });
+    });
+
+    // Listen for maintenance updates
+    const unsubMaintenanceUpdated = ws.on('maintenance:updated', (request) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/maintenance-requests"] });
+      toast({ 
+        title: "Maintenance Update", 
+        description: `Request "${request.title}" has been updated`
+      });
+    });
+
+    // Listen for transaction updates
+    const unsubTransactionCreated = ws.on('transaction:created', (transaction) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+    });
+
+    return () => {
+      unsubRoomUpdate();
+      unsubGuestCreated();
+      unsubGuestUpdated();
+      unsubMaintenanceUpdated();
+      unsubTransactionCreated();
+    };
+  }, [user?.hotelId, ws, queryClient, toast]);
 
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
