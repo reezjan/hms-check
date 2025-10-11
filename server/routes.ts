@@ -2981,6 +2981,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const charge = await storage.createRoomServiceCharge(chargeData);
+      
+      // Emit WebSocket event for real-time updates
+      wsEvents.roomServiceChargeCreated(currentUser.hotelId, charge);
+      
       res.json(charge);
     } catch (error) {
       console.error("Create room service charge error:", error);
@@ -3025,6 +3029,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { id } = req.params;
       await storage.deleteRoomServiceCharge(id);
+      
+      // Emit WebSocket event for real-time updates
+      wsEvents.roomServiceChargeDeleted(currentUser.hotelId, id);
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Delete room service charge error:", error);

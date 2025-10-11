@@ -174,6 +174,13 @@ export const wsEvents = {
   guestUpdated: (hotelId: string, guest: any) => 
     broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'guest:updated', guest),
 
+  // Room service charge updates
+  roomServiceChargeCreated: (hotelId: string, charge: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'room-service-charge:created', charge),
+  
+  roomServiceChargeDeleted: (hotelId: string, chargeId: string) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'room-service-charge:deleted', { chargeId }),
+
   // General notification
   notification: (userId: string, notification: any) => 
     broadcastToUser(userId, 'notification', notification),

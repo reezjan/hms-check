@@ -50,34 +50,63 @@ The system is a full-stack application built with React and TypeScript for the f
 
 ## Replit Environment Setup (October 11, 2025)
 
-### Initial Setup Completed
-The project has been successfully configured to run in the Replit environment:
+### Fresh Clone Setup - Completed ✅
+The project has been successfully imported from GitHub and configured to run in the Replit environment:
 
-1. **Database**: PostgreSQL database provisioned and seeded with test data
+1. **Dependencies Installed**:
+   - All Node.js packages installed via npm
+   - TypeScript, Vite, Express, Drizzle ORM, and all UI libraries ready
+
+2. **Database**: PostgreSQL database configured and seeded with test data
+   - Database URL: Available via environment variable `DATABASE_URL`
+   - Schema pushed using Drizzle Kit
    - 17 distinct user roles (super_admin, owner, manager, etc.)
    - Test hotel with rooms, halls, restaurant tables, and menu items
    - Sample users, guests, vendors, and financial transactions
-   - Default login: username `superadmin`, password `aef009750905865270b03eb27ceba80e`
 
-2. **Development Workflow**: Configured to run `npm run dev` on port 5000
+3. **Development Workflow**: Configured to run `npm run dev` on port 5000
    - Frontend and backend served from single Express server
-   - Vite dev server properly configured with `allowedHosts: true` for Replit proxy
-   - WebSocket support for real-time updates
+   - Vite dev server configured with HMR for Replit proxy environment
+   - WebSocket support for real-time updates on `/ws` path
+   - Server binds to 0.0.0.0:5000 for Replit compatibility
 
-3. **Deployment**: Configured for autoscale deployment
+4. **Deployment**: Configured for autoscale deployment
    - Build: `npm run build` (compiles Vite frontend + esbuild backend)
    - Run: `npm start` (production server)
+   - Deployment target: autoscale (stateless web app)
 
-4. **Scripts Available**:
-   - `npm run dev` - Development server with hot reload
-   - `npm run build` - Production build
-   - `npm start` - Start production server
-   - `npm run db:push` - Push database schema changes
-   - `npm run db:seed` - Seed database with test data
+5. **Git Configuration**:
+   - .gitignore file created for Node.js project
+   - Excludes node_modules, dist, .env files, and IDE configs
+
+### Scripts Available
+- `npm run dev` - Development server with hot reload
+- `npm run build` - Production build
+- `npm start` - Start production server
+- `npm run db:push` - Push database schema changes
+- `npm run db:seed` - Seed database with test data
 
 ### Test Credentials
 - **Superadmin**: username `superadmin`, password `aef009750905865270b03eb27ceba80e`
 - **Owner**: username `owner`, password `owner123`
 - **Manager**: username `manager`, password `manager`
 - **Waiter**: username `waiter`, password `waiter`
-- See seed script output for more test users
+- **Barista**: username `barista`, password `barista`
+- **Storekeeper**: username `store`, password `storekeeper`
+- See seed script output for all test users
+
+### Recent Updates (October 11, 2025)
+
+**Manager Role Enhancements:**
+- Added "Leave Requests" navigation option for managers to submit leave requests to owner
+- Leave requests follow the approval hierarchy: Manager → Owner
+
+**Real-time Updates:**
+- Front desk checkout now displays real-time updates for room service charges
+- When services are added/removed to a guest's reservation, the payment summary updates instantly without manual refresh
+- WebSocket events broadcast to front_desk, manager, and owner roles for room service charge changes
+
+### Known Issues
+- Vite HMR WebSocket may show connection warnings in browser console (fallback to localhost:undefined)
+- This is cosmetic and doesn't affect application functionality
+- The app's own WebSocket server on `/ws` works correctly for real-time updates
