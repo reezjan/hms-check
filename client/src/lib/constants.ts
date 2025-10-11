@@ -251,6 +251,7 @@ export const NAVIGATION_ITEMS = {
     { icon: 'Waves', label: 'Amenities', id: 'amenities' },
     { icon: 'UtensilsCrossed', label: 'Meal Plans', id: 'meal-plans' },
     { icon: 'Wrench', label: 'Maintenance Requests', id: 'maintenance-requests' },
+    { icon: 'CalendarDays', label: 'Leave Requests', id: 'leave' },
     { icon: 'FileCheck', label: 'Leave Approvals', id: 'leave-approvals' },
     { icon: 'Receipt', label: 'Transactions', id: 'transactions' }
   ],

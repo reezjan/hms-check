@@ -56,6 +56,7 @@ export function Sidebar({ onItemClick }: SidebarProps = {}) {
         'amenities': '/manager/amenities',
         'meal-plans': '/manager/meal-plans',
         'maintenance-requests': '/manager/maintenance-requests',
+        'leave': '/leave-requests',
         'leave-approvals': '/manager/leave-approvals',
         'transactions': '/manager/transactions'
       },
