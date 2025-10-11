@@ -635,6 +635,7 @@ export const roomReservations = pgTable("room_reservations", {
   totalPrice: numeric("total_price", { precision: 12, scale: 2 }),
   paidAmount: numeric("paid_amount", { precision: 12, scale: 2 }).default('0'),
   specialRequests: text("special_requests"),
+  guestType: text("guest_type").default('walkin'),
   status: text("status").default('pending'),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

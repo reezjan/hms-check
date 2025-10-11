@@ -47,3 +47,37 @@ The system is a full-stack application built with React and TypeScript for the f
 -   **Drizzle ORM**: TypeScript ORM for PostgreSQL.
 -   **Passport.js**: Authentication middleware.
 -   **Lucide icons**: Icon library.
+
+## Replit Environment Setup (October 11, 2025)
+
+### Initial Setup Completed
+The project has been successfully configured to run in the Replit environment:
+
+1. **Database**: PostgreSQL database provisioned and seeded with test data
+   - 17 distinct user roles (super_admin, owner, manager, etc.)
+   - Test hotel with rooms, halls, restaurant tables, and menu items
+   - Sample users, guests, vendors, and financial transactions
+   - Default login: username `superadmin`, password `aef009750905865270b03eb27ceba80e`
+
+2. **Development Workflow**: Configured to run `npm run dev` on port 5000
+   - Frontend and backend served from single Express server
+   - Vite dev server properly configured with `allowedHosts: true` for Replit proxy
+   - WebSocket support for real-time updates
+
+3. **Deployment**: Configured for autoscale deployment
+   - Build: `npm run build` (compiles Vite frontend + esbuild backend)
+   - Run: `npm start` (production server)
+
+4. **Scripts Available**:
+   - `npm run dev` - Development server with hot reload
+   - `npm run build` - Production build
+   - `npm start` - Start production server
+   - `npm run db:push` - Push database schema changes
+   - `npm run db:seed` - Seed database with test data
+
+### Test Credentials
+- **Superadmin**: username `superadmin`, password `aef009750905865270b03eb27ceba80e`
+- **Owner**: username `owner`, password `owner123`
+- **Manager**: username `manager`, password `manager`
+- **Waiter**: username `waiter`, password `waiter`
+- See seed script output for more test users
