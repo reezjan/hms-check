@@ -260,7 +260,7 @@ export default function OwnerDashboard() {
                       </div>
                     </div>
                     <div className={`text-sm font-bold ${
-                      transaction.txnType === 'revenue' ? 'text-green-600' : 'text-red-600'
+                      ['revenue', 'cash_in', 'pos_in', 'fonepay_in'].includes(transaction.txnType) ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {formatCurrency(Number(transaction.amount))}
                     </div>

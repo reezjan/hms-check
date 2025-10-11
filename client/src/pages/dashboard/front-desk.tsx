@@ -1474,6 +1474,7 @@ export default function FrontDeskDashboard() {
                                   roomPrice: String(occupantDetails?.roomPrice || 0),
                                   mealPlanPrice: String(occupantDetails?.mealPlan?.totalCost || 0),
                                   totalPrice: String(parseFloat(occupantDetails?.roomPrice || 0) + parseFloat(occupantDetails?.mealPlan?.totalCost || 0)),
+                                  guestType: occupantDetails?.guestType || 'walkin',
                                   status: 'checked_in',
                                   createdBy: user?.id
                                 });
@@ -2614,6 +2615,7 @@ export default function FrontDeskDashboard() {
                         mealPlanPrice: "0",
                         totalPrice: occupantData.roomPrice || "0",
                         paidAmount: occupantData.advancePayment || "0",
+                        guestType: occupantData.guestType || 'walkin',
                         status: 'checked_in'
                       }).then((newReservation: any) => {
                         setSelectedReservationForService(newReservation.id);
