@@ -2697,13 +2697,34 @@ export class DatabaseStorage implements IStorage {
   // Leave balance operations
   async getLeaveBalancesByUser(userId: string, year?: number): Promise<any[]> {
     const currentYear = year || new Date().getFullYear();
-    return await db
+    const balances = await db
       .select()
       .from(leaveBalances)
       .where(and(
         eq(leaveBalances.userId, userId),
         eq(leaveBalances.year, currentYear)
       ));
+    
+    // Enrich balances with leave policy details
+    if (balances.length === 0) {
+      return [];
+    }
+    
+    const firstBalance = balances[0];
+    const hotelPolicies = await db
+      .select()
+      .from(leavePolicies)
+      .where(eq(leavePolicies.hotelId, firstBalance.hotelId as string));
+    
+    const enrichedBalances = balances.map((balance) => {
+      const policy = hotelPolicies.find(p => p.leaveType === balance.leaveType);
+      return {
+        ...balance,
+        leaveTypeDetails: policy || { name: balance.leaveType, leaveType: balance.leaveType }
+      };
+    });
+    
+    return enrichedBalances;
   }
 
   async getLeaveBalance(userId: string, leaveType: string, year: number): Promise<any | undefined> {
