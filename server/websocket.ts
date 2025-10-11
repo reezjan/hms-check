@@ -181,6 +181,62 @@ export const wsEvents = {
   roomServiceChargeDeleted: (hotelId: string, chargeId: string) => 
     broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'room-service-charge:deleted', { chargeId }),
 
+  // Reservation updates
+  reservationCreated: (hotelId: string, reservation: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'reservation:created', reservation),
+  
+  reservationUpdated: (hotelId: string, reservation: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'reservation:updated', reservation),
+
+  // Hall booking updates
+  hallBookingCreated: (hotelId: string, booking: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'hall-booking:created', booking),
+  
+  hallBookingUpdated: (hotelId: string, booking: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'hall-booking:updated', booking),
+
+  // Payment updates
+  paymentCreated: (hotelId: string, payment: any) => 
+    broadcastToRole(hotelId, ['finance', 'cashier', 'manager', 'owner', 'front_desk'], 'payment:created', payment),
+  
+  paymentUpdated: (hotelId: string, payment: any) => 
+    broadcastToRole(hotelId, ['finance', 'cashier', 'manager', 'owner', 'front_desk'], 'payment:updated', payment),
+
+  // Inventory updates
+  inventoryCreated: (hotelId: string, item: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'inventory:created', item),
+  
+  inventoryUpdated: (hotelId: string, item: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'inventory:updated', item),
+  
+  inventoryDeleted: (hotelId: string, itemId: string) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'inventory:deleted', { itemId }),
+
+  // Inventory transaction updates
+  inventoryTransactionCreated: (hotelId: string, transaction: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner'], 'inventory-transaction:created', transaction),
+
+  // Wastage updates
+  wastageCreated: (hotelId: string, wastage: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner', 'restaurant_bar_manager'], 'wastage:created', wastage),
+  
+  wastageUpdated: (hotelId: string, wastage: any) => 
+    broadcastToRole(hotelId, ['storekeeper', 'manager', 'owner', 'restaurant_bar_manager'], 'wastage:updated', wastage),
+
+  // User/Staff updates
+  userCreated: (hotelId: string, user: any) => 
+    broadcastToRole(hotelId, ['manager', 'owner'], 'user:created', user),
+  
+  userUpdated: (hotelId: string, user: any) => 
+    broadcastToRole(hotelId, ['manager', 'owner'], 'user:updated', user),
+
+  // Room and amenity updates
+  roomCreated: (hotelId: string, room: any) => 
+    broadcastToRole(hotelId, ['front_desk', 'manager', 'owner'], 'room:created', room),
+  
+  amenityUpdated: (hotelId: string, amenity: any) => 
+    broadcastToRole(hotelId, ['manager', 'owner'], 'amenity:updated', amenity),
+
   // General notification
   notification: (userId: string, notification: any) => 
     broadcastToUser(userId, 'notification', notification),

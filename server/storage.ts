@@ -1784,37 +1784,9 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const currentStock = Number(inventoryItem.baseStockQty || inventoryItem.stockQty || 0);
+    // Note: Wastage is recorded but NOT deducted from inventory
+    // This keeps wastage as a record only for tracking purposes
     
-    if (wastageQtyInBaseUnits > currentStock) {
-      throw new Error(`Insufficient stock. Current stock: ${currentStock} ${baseUnit}, requested wastage: ${wastageQty} ${wastageUnit}`);
-    }
-    
-    const newQuantity = currentStock - wastageQtyInBaseUnits;
-
-    // Deduct from inventory
-    await db
-      .update(inventoryItems)
-      .set({ 
-        baseStockQty: String(newQuantity),
-        stockQty: String(newQuantity),
-        updatedAt: new Date()
-      })
-      .where(eq(inventoryItems.id, wastage.itemId));
-
-    // Record consumption
-    await db
-      .insert(inventoryConsumptions)
-      .values({
-        hotelId: wastage.hotelId,
-        itemId: wastage.itemId,
-        qty: String(wastageQtyInBaseUnits),
-        unit: baseUnit,
-        reason: `Wastage: ${wastage.reason}`,
-        referenceEntity: 'wastage',
-        createdBy: wastage.recordedBy
-      });
-
     // Record transaction
     await db
       .insert(inventoryTransactions)

@@ -3992,9 +3992,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itemCost = Number(inventoryItem.costPerUnit || 0);
       const wastageValue = wastageQty * itemCost;
       
-      // Only manager, owner, and storekeeper can auto-approve wastage (deduct from inventory)
+      // Only manager, owner, restaurant_bar_manager, and storekeeper can auto-approve wastage (deduct from inventory)
       // Other staff (barista, bartender, kitchen, waiter, cashier) create pending wastage
-      const canAutoApprove = ['manager', 'owner', 'storekeeper'].includes(user.role?.name || '');
+      const canAutoApprove = ['manager', 'owner', 'restaurant_bar_manager', 'storekeeper'].includes(user.role?.name || '');
       
       if (!canAutoApprove) {
         // Create wastage with 'pending_approval' status - DO NOT deduct stock
@@ -4073,8 +4073,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { approved, rejectionReason } = req.body;
       
-      // Only managers can approve wastage
-      const canApprove = ['manager', 'owner'].includes(currentUser.role?.name || '');
+      // Only managers and restaurant bar managers can approve wastage
+      const canApprove = ['manager', 'owner', 'restaurant_bar_manager'].includes(currentUser.role?.name || '');
       if (!canApprove) {
         return res.status(403).json({ 
           message: "Only managers can approve wastage" 
