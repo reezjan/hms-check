@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function StorekeeperInventoryManagement() {
   const { user } = useAuth();
@@ -30,7 +31,13 @@ export default function StorekeeperInventoryManagement() {
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
 
   const { data: allInventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/inventory-items"],
+    events: ['inventory:created', 'inventory:updated', 'inventory:deleted']
   });
 
   // Filter items by department
@@ -45,7 +52,13 @@ export default function StorekeeperInventoryManagement() {
   });
 
   const { data: inventoryTransactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-transactions"]
+    queryKey: ["/api/hotels/current/inventory-transactions"],
+    refetchInterval: 3000
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/inventory-transactions"],
+    events: ['inventory_transaction:created', 'inventory_transaction:updated']
   });
 
   const addItemForm = useForm({
@@ -59,7 +72,7 @@ export default function StorekeeperInventoryManagement() {
       reorderLevel: 0,
       storageLocation: "",
       costPerUnit: 0,
-      departments: [] as string[],
+      department: "",
       expiryDate: "",
       hasExpiry: false
     }
@@ -88,12 +101,14 @@ export default function StorekeeperInventoryManagement() {
   const createItemMutation = useMutation({
     mutationFn: async (data: any) => {
       const baseUnitsPerPackage = data.packageUnit ? parseFloat(data.baseUnitsPerPackage) || 0 : 0;
+      // Auto-generate SKU if not provided
+      const sku = data.sku.trim() || `SKU-${Date.now()}`;
       
       await apiRequest("POST", "/api/hotels/current/inventory-items", {
         hotelId: user?.hotelId,
         name: data.name,
-        description: data.description,
-        sku: data.sku,
+        description: data.description || "",
+        sku: sku,
         unit: data.baseUnit,
         baseUnit: data.baseUnit,
         packageUnit: data.packageUnit || null,
@@ -101,9 +116,9 @@ export default function StorekeeperInventoryManagement() {
         packageStockQty: '0',
         baseStockQty: '0',
         reorderLevel: data.reorderLevel.toString(),
-        storageLocation: data.storageLocation,
+        storageLocation: data.storageLocation || "",
         costPerUnit: data.costPerUnit.toString(),
-        departments: data.departments || []
+        departments: data.department === "all" ? ["all"] : [data.department]
       });
     },
     onSuccess: () => {
@@ -536,280 +551,202 @@ export default function StorekeeperInventoryManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Item Modal - Simplified for Storekeepers */}
+      {/* Add Item Modal - Matching Owner Design */}
       <Dialog open={isAddItemModalOpen} onOpenChange={setIsAddItemModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">Add New Item to Store</DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">Fill in the basic details below</p>
+            <DialogTitle>Add Inventory Item</DialogTitle>
+            <p className="text-sm text-muted-foreground">Create a new inventory item</p>
           </DialogHeader>
           <Form {...addItemForm}>
-            <form onSubmit={addItemForm.handleSubmit(onAddItem)} className="space-y-5">
-              {/* Item Name - Most Important */}
-              <FormField
-                control={addItemForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-semibold">1. What is the item called? *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="Example: Rice, Soap, Towels" 
-                        className="text-base h-11"
-                        data-testid="input-item-name" 
-                      />
-                    </FormControl>
-                    <FormDescription className="text-sm">Write the name of the item you want to add</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Who uses it */}
-              <FormField
-                control={addItemForm.control}
-                name="departments"
-                render={() => (
-                  <FormItem>
-                    <FormLabel className="text-base font-semibold">2. Who will use this item? *</FormLabel>
-                    <FormDescription className="text-sm mb-3">
-                      Check the boxes for departments that need this item
-                    </FormDescription>
-                    <div className="grid grid-cols-2 gap-3 bg-muted/30 p-4 rounded-lg">
-                      {[
-                        { value: 'all', label: '✓ Everyone (All Departments)', highlight: true },
-                        { value: 'kitchen', label: 'Kitchen' },
-                        { value: 'restaurant', label: 'Restaurant' },
-                        { value: 'bar', label: 'Bar' },
-                        { value: 'housekeeping', label: 'Housekeeping/Cleaning' },
-                        { value: 'laundry', label: 'Laundry' },
-                        { value: 'maintenance', label: 'Maintenance/Repair' },
-                        { value: 'front_desk', label: 'Front Desk' },
-                        { value: 'security', label: 'Security' }
-                      ].map((dept) => (
-                        <FormField
-                          key={dept.value}
-                          control={addItemForm.control}
-                          name="departments"
-                          render={({ field }) => (
-                            <FormItem className={`flex items-center space-x-3 space-y-0 p-2 rounded ${dept.highlight ? 'bg-primary/10 border border-primary/20' : ''}`}>
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(dept.value)}
-                                  onCheckedChange={(checked) => {
-                                    const currentValue = field.value || [];
-                                    if (dept.value === 'all') {
-                                      if (checked) {
-                                        field.onChange(['all']);
-                                      } else {
-                                        field.onChange([]);
-                                      }
-                                    } else {
-                                      if (checked) {
-                                        const newValue = currentValue.filter((v: string) => v !== 'all');
-                                        field.onChange([...newValue, dept.value]);
-                                      } else {
-                                        field.onChange(currentValue.filter((v: string) => v !== dept.value));
-                                      }
-                                    }
-                                  }}
-                                  data-testid={`checkbox-dept-${dept.value}`}
-                                  className="h-5 w-5"
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal cursor-pointer leading-tight">
-                                {dept.label}
-                              </FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* How to measure */}
-              <FormField
-                control={addItemForm.control}
-                name="baseUnit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-semibold">3. How do you count/measure this? *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            <form onSubmit={addItemForm.handleSubmit(onAddItem)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={addItemForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Name *</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="text-base h-11" data-testid="select-base-unit">
-                          <SelectValue placeholder="Choose how to measure" />
-                        </SelectTrigger>
+                        <Input 
+                          {...field} 
+                          placeholder="Enter item name" 
+                          data-testid="input-item-name" 
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="piece">Pieces (1, 2, 3...)</SelectItem>
-                        <SelectItem value="kg">Kilograms (kg) - for heavy items</SelectItem>
-                        <SelectItem value="g">Grams (g) - for light items</SelectItem>
-                        <SelectItem value="L">Liters (L) - for liquids</SelectItem>
-                        <SelectItem value="ml">Milliliters (ml) - for small liquid amounts</SelectItem>
-                        <SelectItem value="pack">Packs/Packets</SelectItem>
-                        <SelectItem value="dozen">Dozen (12 pieces)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription className="text-sm">Select how you will count or weigh this item</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={addItemForm.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter SKU" data-testid="input-sku" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              {/* Where to keep it */}
-              <FormField
-                control={addItemForm.control}
-                name="storageLocation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base font-semibold">4. Where do you keep this item?</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="Example: Shelf 1, Cold Room, Top Rack" 
-                        className="text-base h-11"
-                        data-testid="input-storage-location" 
-                      />
-                    </FormControl>
-                    <FormDescription className="text-sm">Where in the store is this item kept?</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Optional: What it looks like / Notes */}
               <FormField
                 control={addItemForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base font-semibold">5. Any notes? (Optional)</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea 
                         {...field} 
-                        placeholder="Example: White color, comes in blue bags, expires quickly" 
-                        className="text-base"
+                        placeholder="Enter description" 
                         rows={3}
                         data-testid="input-item-description" 
                       />
                     </FormControl>
-                    <FormDescription className="text-sm">Add any helpful details about this item</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Advanced fields hidden by default - Only show if needed */}
-              <details className="border rounded-lg p-4 bg-muted/20">
-                <summary className="cursor-pointer font-semibold text-base mb-4">
-                  ⚙️ Advanced Settings (Optional - Click to show)
-                </summary>
-                <div className="space-y-4 mt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={addItemForm.control}
-                      name="packageUnit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Package Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="e.g., sack, box, carton" data-testid="input-package-unit" />
-                          </FormControl>
-                          <FormDescription className="text-xs">If items come in packages</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addItemForm.control}
-                      name="baseUnitsPerPackage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>How many in 1 package?</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              type="number"
-                              step="0.001"
-                              placeholder="e.g., 50"
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              data-testid="input-base-units-per-package"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <FormField
-                      control={addItemForm.control}
-                      name="reorderLevel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Minimum Stock Alert</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              type="number"
-                              step="0.001"
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              data-testid="input-reorder-level"
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">Alert when stock goes below this</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addItemForm.control}
-                      name="costPerUnit"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Price per Unit</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              type="number"
-                              step="0.01"
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              data-testid="input-cost-per-unit"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addItemForm.control}
-                      name="sku"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Item Code/SKU</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="e.g., ITM-001" data-testid="input-item-sku" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </details>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={addItemForm.control}
+                  name="baseUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-base-unit">
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="piece">Piece</SelectItem>
+                          <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                          <SelectItem value="g">Gram (g)</SelectItem>
+                          <SelectItem value="L">Liter (L)</SelectItem>
+                          <SelectItem value="ml">Milliliter (ml)</SelectItem>
+                          <SelectItem value="pack">Pack</SelectItem>
+                          <SelectItem value="dozen">Dozen</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={addItemForm.control}
+                  name="reorderLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reorder Level</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          value={field.value || ''} 
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          placeholder="Minimum stock level" 
+                          data-testid="input-reorder-level" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-semibold"
-                disabled={createItemMutation.isPending}
-                data-testid="button-submit-item"
-              >
-                {createItemMutation.isPending ? 'Adding Item...' : '✓ Add Item to Store'}
-              </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={addItemForm.control}
+                  name="storageLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Storage Location</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Storage location" 
+                          data-testid="input-storage-location" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={addItemForm.control}
+                  name="costPerUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost Per Unit</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          placeholder="Cost per unit" 
+                          data-testid="input-cost-per-unit" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={addItemForm.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-department">
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="kitchen">Kitchen</SelectItem>
+                        <SelectItem value="restaurant">Restaurant</SelectItem>
+                        <SelectItem value="bar">Bar</SelectItem>
+                        <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                        <SelectItem value="laundry">Laundry</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                        <SelectItem value="front_desk">Front Desk</SelectItem>
+                        <SelectItem value="security">Security</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => setIsAddItemModalOpen(false)}
+                  data-testid="button-cancel-add"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createItemMutation.isPending}
+                  data-testid="button-submit-item"
+                >
+                  {createItemMutation.isPending ? 'Adding...' : 'Add Item'}
+                </Button>
+              </div>
             </form>
           </Form>
         </DialogContent>

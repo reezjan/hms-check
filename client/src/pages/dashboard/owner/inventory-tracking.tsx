@@ -13,6 +13,7 @@ import { Package, AlertTriangle, TrendingDown, BarChart } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function InventoryTracking() {
   const { user } = useAuth();
@@ -41,6 +42,12 @@ export default function InventoryTracking() {
 
   const { data: consumptions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/inventory-consumptions"]
+  });
+
+  // Real-time updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/inventory-items"],
+    events: ['inventory:created', 'inventory:updated', 'inventory:deleted']
   });
 
   // Populate form when editing

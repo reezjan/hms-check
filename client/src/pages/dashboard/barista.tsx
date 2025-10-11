@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Coffee, Clock, CheckCircle, XCircle, Wrench, Package, AlertTriangle } from "lucide-react";
+import { Coffee, Clock, CheckCircle, XCircle, Package, AlertTriangle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,16 +45,6 @@ interface InventoryItem {
   unit: string;
 }
 
-interface MaintenanceRequest {
-  id: string;
-  title: string;
-  location: string;
-  description: string;
-  priority: string;
-  status: string;
-  photo: string | null;
-}
-
 export default function BaristaDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -85,10 +75,6 @@ export default function BaristaDashboard() {
 
   const { data: inventoryItems = [] } = useQuery({
     queryKey: ["/api/hotels/current/inventory-items"]
-  });
-
-  const { data: maintenanceRequests = [] } = useQuery({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
   });
 
   const updateKotItemMutation = useMutation({
@@ -352,9 +338,6 @@ export default function BaristaDashboard() {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" onClick={() => setLocation('/barista/maintenance')}>
-            <Wrench className="w-4 h-4 mr-2" /> Maintenance Request
-          </Button>
         </div>
 
         <Card>
@@ -409,46 +392,6 @@ export default function BaristaDashboard() {
                   )}
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <span>Maintenance Requests</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {!Array.isArray(maintenanceRequests) || maintenanceRequests.length === 0 ? (
-                <p className="text-gray-500 col-span-full text-center py-4">No maintenance requests</p>
-              ) : (
-                (maintenanceRequests as MaintenanceRequest[]).map((request: MaintenanceRequest) => (
-                  <Card key={request.id}>
-                    <CardHeader>
-                      <CardTitle className="flex justify-between items-center">
-                        <span>{request.title}</span>
-                        <Badge variant={
-                          request.priority === 'high' ? 'destructive' :
-                          request.priority === 'medium' ? 'default' : 'secondary'
-                        }>
-                          {request.priority}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm"><strong>Location:</strong> {request.location}</p>
-                      <p className="text-sm"><strong>Status:</strong> {request.status}</p>
-                      <p className="text-sm mt-2">{request.description}</p>
-                      {request.photo && (
-                        <img src={request.photo} alt="Issue" className="mt-2 max-w-full h-32 object-cover rounded" />
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
             </div>
           </CardContent>
         </Card>

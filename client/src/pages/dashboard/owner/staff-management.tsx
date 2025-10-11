@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 // Define the staff creation schema
 const staffSchema = z.object({
@@ -64,6 +65,17 @@ export default function StaffManagement() {
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
     queryKey: ["/api/attendance/daily"]
+  });
+
+  // Real-time updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/users"],
+    events: ['user:created', 'user:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/attendance/daily"],
+    events: ['attendance:updated']
   });
 
   // Form for staff creation
