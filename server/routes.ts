@@ -3992,13 +3992,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const itemCost = Number(inventoryItem.costPerUnit || 0);
       const wastageValue = wastageQty * itemCost;
       
-      // CRITICAL: High-value wastage requires immediate manager approval
-      const highValueThreshold = 1000; // Adjust based on your needs
+      // Only manager, owner, and storekeeper can auto-approve wastage (deduct from inventory)
+      // Other staff (barista, bartender, kitchen, waiter, cashier) create pending wastage
+      const canAutoApprove = ['manager', 'owner', 'storekeeper'].includes(user.role?.name || '');
       
-      const isManager = ['manager', 'owner'].includes(user.role?.name || '');
-      
-      if (wastageValue > highValueThreshold && !isManager) {
-        // Create wastage with 'pending_approval' status - DO NOT deduct stock yet
+      if (!canAutoApprove) {
+        // Create wastage with 'pending_approval' status - DO NOT deduct stock
         const finalWastageData = {
           ...wastageData,
           hotelId: user.hotelId,
@@ -4009,16 +4008,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const wastage = await storage.createWastage(finalWastageData);
         
-        // Notify manager
-        const managerRole = await storage.getRoleByName('manager');
-        if (managerRole) {
-          const managers = await storage.getUsersByRole(managerRole.id);
-          const hotelManagers = managers.filter(m => m.hotelId === user.hotelId);
+        // Notify restaurant/bar manager for kitchen/bar/restaurant staff wastage
+        const restaurantBarRole = await storage.getRoleByName('restaurant_bar_manager');
+        if (restaurantBarRole) {
+          const rbManagers = await storage.getUsersByRole(restaurantBarRole.id);
+          const hotelRbManagers = rbManagers.filter(m => m.hotelId === user.hotelId);
           
-          for (const manager of hotelManagers) {
+          for (const manager of hotelRbManagers) {
             await storage.createNotification({
               userId: manager.id,
-              title: 'High-Value Wastage Approval Required',
+              title: 'Wastage Approval Required',
               message: `${user.username} reported wastage of ${wastageData.qty} ${wastageData.unit || inventoryItem.unit} ${inventoryItem.name} (Value: Rs. ${wastageValue.toFixed(2)}). Reason: ${wastageData.reason}`,
               type: 'wastage_approval',
               relatedId: wastage.id,
@@ -4029,11 +4028,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.status(201).json({ 
           ...wastage,
-          message: "High-value wastage requires manager approval" 
+          message: "Wastage requires manager approval" 
         });
       }
       
-      // Low-value wastage or manager reporting - auto-approve
+      // Manager, owner, or storekeeper - auto-approve and deduct inventory
       const finalWastageData = {
         ...wastageData,
         hotelId: user.hotelId,
