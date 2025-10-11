@@ -27,9 +27,17 @@ export default function StorekeeperInventoryManagement() {
   const [isIssueStockModalOpen, setIsIssueStockModalOpen] = useState(false);
   const [receiveStockMode, setReceiveStockMode] = useState<'package' | 'base'>('package');
   const [issueStockMode, setIssueStockMode] = useState<'package' | 'base'>('base');
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
 
-  const { data: inventoryItems = [] } = useQuery<any[]>({
+  const { data: allInventoryItems = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/inventory-items"]
+  });
+
+  // Filter items by department
+  const inventoryItems = allInventoryItems.filter((item: any) => {
+    if (departmentFilter === "all") return true;
+    const departments = item.departments || [];
+    return departments.includes('all') || departments.includes(departmentFilter);
   });
 
   const { data: hotelUsers = [] } = useQuery<any[]>({
@@ -51,7 +59,9 @@ export default function StorekeeperInventoryManagement() {
       reorderLevel: 0,
       storageLocation: "",
       costPerUnit: 0,
-      departments: [] as string[]
+      departments: [] as string[],
+      expiryDate: "",
+      hasExpiry: false
     }
   });
 
@@ -59,6 +69,8 @@ export default function StorekeeperInventoryManagement() {
     defaultValues: {
       qtyPackage: 0,
       qtyBase: 0,
+      supplierName: "",
+      referenceNumber: "",
       notes: ""
     }
   });
@@ -82,6 +94,7 @@ export default function StorekeeperInventoryManagement() {
         name: data.name,
         description: data.description,
         sku: data.sku,
+        unit: data.baseUnit,
         baseUnit: data.baseUnit,
         packageUnit: data.packageUnit || null,
         baseUnitsPerPackage: baseUnitsPerPackage > 0 ? baseUnitsPerPackage.toString() : '0',
@@ -139,7 +152,9 @@ export default function StorekeeperInventoryManagement() {
         transactionType: 'receive',
         qtyBase: qtyBase.toFixed(3),
         recordedBy: user?.id,
-        notes: data.notes
+        supplierName: data.supplierName || "",
+        referenceNumber: data.referenceNumber || "",
+        notes: data.notes || ""
       };
       
       if (hasPackageUnit) {
@@ -273,19 +288,37 @@ export default function StorekeeperInventoryManagement() {
         <TabsContent value="items" className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 className="text-xl sm:text-2xl font-bold">Manage Inventory Items</h2>
-            <Button 
-              onClick={() => setIsAddItemModalOpen(true)}
-              data-testid="button-add-item"
-              className="w-full sm:w-auto"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Item
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="kitchen">Kitchen</SelectItem>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="bar">Bar</SelectItem>
+                  <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                  <SelectItem value="laundry">Laundry</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="front_desk">Front Desk</SelectItem>
+                  <SelectItem value="security">Security</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => setIsAddItemModalOpen(true)}
+                data-testid="button-add-item"
+                className="w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Item
+              </Button>
+            </div>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Inventory Items</CardTitle>
+              <CardTitle>Inventory Items ({inventoryItems.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {inventoryItems.length === 0 ? (
@@ -605,7 +638,7 @@ export default function StorekeeperInventoryManagement() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base font-semibold">3. How do you count/measure this? *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="text-base h-11" data-testid="select-base-unit">
                           <SelectValue placeholder="Choose how to measure" />
@@ -875,12 +908,41 @@ export default function StorekeeperInventoryManagement() {
 
               <FormField
                 control={receiveStockForm.control}
+                name="supplierName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supplier Name *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter supplier/vendor name" data-testid="input-supplier-name" />
+                    </FormControl>
+                    <FormDescription>Required for purchase tracking</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={receiveStockForm.control}
+                name="referenceNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bill/Invoice Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter bill or invoice number" data-testid="input-reference-number" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={receiveStockForm.control}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>Additional Notes</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Purchase details, vendor info..." data-testid="input-receive-notes" />
+                      <Textarea {...field} placeholder="Any additional details..." data-testid="input-receive-notes" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

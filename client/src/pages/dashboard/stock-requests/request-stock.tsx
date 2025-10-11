@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, Plus, CheckCircle, Clock, Truck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { getCategoryForUnit, getSupportedUnitsForItem, getUnitLabel, type UnitCode } from "@shared/measurements";
@@ -35,14 +36,41 @@ type RequestStockForm = z.infer<typeof requestStockSchema>;
 
 export default function RequestStock() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [availableUnits, setAvailableUnits] = useState<UnitCode[]>([]);
 
-  const { data: inventoryItems = [] } = useQuery<any[]>({
+  const { data: allInventoryItems = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/inventory-items"]
   });
+
+  // Map role names to department names for filtering
+  const roleToDepartmentMap: Record<string, string> = {
+    'kitchen_staff': 'kitchen',
+    'waiter': 'restaurant',
+    'bartender': 'bar',
+    'barista': 'bar',
+    'housekeeping_staff': 'housekeeping',
+    'front_desk': 'front_desk',
+    'security_guard': 'security',
+    'surveillance_officer': 'security',
+  };
+
+  // Filter items based on user role/department
+  const inventoryItems = useMemo(() => {
+    const userRole = user?.role?.name;
+    if (!userRole) return allInventoryItems;
+
+    const userDepartment = roleToDepartmentMap[userRole];
+    if (!userDepartment) return allInventoryItems;
+
+    return allInventoryItems.filter((item: any) => {
+      const departments = item.departments || [];
+      return departments.includes('all') || departments.includes(userDepartment);
+    });
+  }, [allInventoryItems, user]);
 
   const { data: myRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/stock-requests/my-requests"]

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Edit, Plus, DoorOpen, Building2 } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 interface RoomType {
   id: number;
@@ -34,6 +35,7 @@ interface Room {
 export default function RoomSetupPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { confirm } = useConfirmDialog();
   
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -157,17 +159,24 @@ export default function RoomSetupPage() {
   };
 
   const handleDeleteRoomType = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this room type?")) return;
-
-    try {
-      const response = await fetch(`/api/room-types/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        toast({ title: "Success", description: "Room type deleted successfully!" });
-        fetchRoomTypes();
+    await confirm({
+      title: "Delete Room Type",
+      description: "Are you sure you want to delete this room type?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/room-types/${id}`, { method: "DELETE" });
+          if (response.ok) {
+            toast({ title: "Success", description: "Room type deleted successfully!" });
+            fetchRoomTypes();
+          }
+        } catch (error) {
+          toast({ title: "Error", description: "Failed to delete room type", variant: "destructive" });
+        }
       }
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to delete room type", variant: "destructive" });
-    }
+    });
   };
 
   const handleSaveRoom = async () => {
@@ -251,17 +260,24 @@ export default function RoomSetupPage() {
   };
 
   const handleDeleteRoom = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this room?")) return;
-
-    try {
-      const response = await fetch(`/api/rooms/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        toast({ title: "Success", description: "Room deleted successfully!" });
-        fetchRooms();
+    await confirm({
+      title: "Delete Room",
+      description: "Are you sure you want to delete this room?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/rooms/${id}`, { method: "DELETE" });
+          if (response.ok) {
+            toast({ title: "Success", description: "Room deleted successfully!" });
+            fetchRooms();
+          }
+        } catch (error) {
+          toast({ title: "Error", description: "Failed to delete room", variant: "destructive" });
+        }
       }
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to delete room", variant: "destructive" });
-    }
+    });
   };
 
   const resetRoomTypeForm = () => {

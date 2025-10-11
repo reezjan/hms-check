@@ -51,7 +51,7 @@ export default function StorekeeperDashboard() {
       icon: <Package className="h-12 w-12" />,
       color: "bg-blue-50 hover:bg-blue-100",
       iconColor: "text-blue-600",
-      route: "/storekeeper/inventory",
+      route: "/storekeeper/inventory-tracking",
       badge: null,
       testId: "button-view-stock"
     },
@@ -61,7 +61,7 @@ export default function StorekeeperDashboard() {
       icon: <AlertTriangle className="h-12 w-12" />,
       color: lowStockItems.length > 0 ? "bg-red-50 hover:bg-red-100" : "bg-gray-50 hover:bg-gray-100",
       iconColor: lowStockItems.length > 0 ? "text-red-600" : "text-gray-400",
-      route: "/storekeeper/inventory",
+      route: "/storekeeper/inventory-tracking",
       badge: lowStockItems.length > 0 ? lowStockItems.length : null,
       testId: "button-low-stock"
     },
@@ -71,7 +71,7 @@ export default function StorekeeperDashboard() {
       icon: <Settings className="h-12 w-12" />,
       color: "bg-green-50 hover:bg-green-100",
       iconColor: "text-green-600",
-      route: "/storekeeper/management",
+      route: "/storekeeper/inventory-management",
       badge: null,
       testId: "button-manage-stock"
     },
@@ -91,7 +91,7 @@ export default function StorekeeperDashboard() {
       icon: <CheckSquare className="h-12 w-12" />,
       color: pendingTasks.length > 0 ? "bg-purple-50 hover:bg-purple-100" : "bg-gray-50 hover:bg-gray-100",
       iconColor: pendingTasks.length > 0 ? "text-purple-600" : "text-gray-400",
-      route: "/storekeeper/tasks",
+      route: "/storekeeper/my-tasks",
       badge: pendingTasks.length > 0 ? pendingTasks.length : null,
       testId: "button-my-tasks"
     }

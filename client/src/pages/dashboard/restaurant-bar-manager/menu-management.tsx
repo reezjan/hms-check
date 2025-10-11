@@ -12,8 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Utensils, Plus, Coffee, Wine, Cake, X, Beaker } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function MenuManagement() {
+  const { confirm } = useConfirmDialog();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isIngredientsDialogOpen, setIsIngredientsDialogOpen] = useState(false);
@@ -160,19 +162,26 @@ export default function MenuManagement() {
   };
 
   const handleDeleteMenuItem = async (item: any) => {
-    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      try {
-        const response = await fetch(`/api/hotels/current/menu-items/${item.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error("Failed to delete menu item");
-        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/menu-items"] });
-        toast.success("Menu item deleted successfully");
-      } catch (error: any) {
-        toast.error(error.message);
+    await confirm({
+      title: "Delete Menu Item",
+      description: `Are you sure you want to delete "${item.name}"?`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/hotels/current/menu-items/${item.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          if (!response.ok) throw new Error("Failed to delete menu item");
+          queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/menu-items"] });
+          toast.success("Menu item deleted successfully");
+        } catch (error: any) {
+          toast.error(error.message);
+        }
       }
-    }
+    });
   };
 
   const handleCreateCategory = () => {
@@ -184,9 +193,16 @@ export default function MenuManagement() {
   };
 
   const handleDeleteCategory = async (category: any) => {
-    if (confirm(`Are you sure you want to delete "${category.name}" category?`)) {
-      deleteCategoryMutation.mutate(category.id);
-    }
+    await confirm({
+      title: "Delete Category",
+      description: `Are you sure you want to delete "${category.name}" category?`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteCategoryMutation.mutate(category.id);
+      }
+    });
   };
 
   const handleManageIngredients = (item: any) => {

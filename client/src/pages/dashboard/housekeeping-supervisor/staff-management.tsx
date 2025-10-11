@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 const staffSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -24,6 +25,7 @@ const staffSchema = z.object({
 export default function HousekeepingSupervisorStaffManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { confirm } = useConfirmDialog();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -120,10 +122,17 @@ export default function HousekeepingSupervisorStaffManagement() {
     });
   };
 
-  const handleDeleteStaff = (staffId: string) => {
-    if (confirm("Are you sure you want to remove this staff member?")) {
-      deleteStaffMutation.mutate(staffId);
-    }
+  const handleDeleteStaff = async (staffId: string) => {
+    await confirm({
+      title: "Remove Staff Member",
+      description: "Are you sure you want to remove this staff member?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteStaffMutation.mutate(staffId);
+      }
+    });
   };
 
   const staffColumns = [

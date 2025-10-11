@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, Plus, Users, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function TableSetup() {
+  const { confirm } = useConfirmDialog();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTable, setNewTable] = useState({
     name: "",
@@ -92,19 +94,26 @@ export default function TableSetup() {
   };
 
   const handleDeleteTable = async (table: any) => {
-    if (confirm(`Are you sure you want to delete table "${table.name}"?`)) {
-      try {
-        const response = await fetch(`/api/hotels/current/restaurant-tables/${table.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error("Failed to delete table");
-        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/restaurant-tables"] });
-        toast.success("Table deleted successfully");
-      } catch (error: any) {
-        toast.error(error.message);
+    await confirm({
+      title: "Delete Table",
+      description: `Are you sure you want to delete table "${table.name}"?`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/hotels/current/restaurant-tables/${table.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          if (!response.ok) throw new Error("Failed to delete table");
+          queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/restaurant-tables"] });
+          toast.success("Table deleted successfully");
+        } catch (error: any) {
+          toast.error(error.message);
+        }
       }
-    }
+    });
   };
 
   const getStatusColor = (status: string) => {

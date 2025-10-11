@@ -19,10 +19,12 @@ import { useToast } from "@/hooks/use-toast";
 import { cn, formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function RoomOccupancy() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { confirm } = useConfirmDialog();
   const queryClient = useQueryClient();
   const ws = useWebSocket();
   
@@ -693,10 +695,17 @@ export default function RoomOccupancy() {
     },
     { 
       label: "Delete", 
-      action: (row: any) => {
-        if (confirm(`Are you sure you want to delete room type "${row.name}"?`)) {
-          deleteRoomTypeMutation.mutate(row.id);
-        }
+      action: async (row: any) => {
+        await confirm({
+          title: "Delete Room Type",
+          description: `Are you sure you want to delete room type "${row.name}"?`,
+          confirmText: "Delete",
+          cancelText: "Cancel",
+          variant: "destructive",
+          onConfirm: () => {
+            deleteRoomTypeMutation.mutate(row.id);
+          }
+        });
       }, 
       variant: "destructive" as const 
     }

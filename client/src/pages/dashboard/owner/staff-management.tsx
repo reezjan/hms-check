@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 // Define the staff creation schema
 const staffSchema = z.object({
@@ -316,6 +317,8 @@ export default function StaffManagement() {
     }
   ];
 
+  const { confirm } = useConfirmDialog();
+
   const staffActions = [
     { 
       label: "Edit", 
@@ -333,10 +336,17 @@ export default function StaffManagement() {
     },
     { 
       label: "Remove", 
-      action: (row: any) => {
-        if (confirm(`Are you sure you want to remove ${row.username}?`)) {
-          deleteStaffMutation.mutate(row.id);
-        }
+      action: async (row: any) => {
+        await confirm({
+          title: "Remove Staff Member",
+          description: `Are you sure you want to remove ${row.username}? This action cannot be undone.`,
+          confirmText: "Remove",
+          cancelText: "Cancel",
+          variant: "destructive",
+          onConfirm: () => {
+            deleteStaffMutation.mutate(row.id);
+          }
+        });
       }, 
       variant: "destructive" as const 
     }

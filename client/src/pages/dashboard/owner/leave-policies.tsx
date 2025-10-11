@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Pencil, Trash2, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 interface LeavePolicy {
   id: string;
@@ -23,6 +24,7 @@ interface LeavePolicy {
 
 export default function LeavePoliciesPage() {
   const { toast } = useToast();
+  const { confirm } = useConfirmDialog();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -315,10 +317,17 @@ export default function LeavePoliciesPage() {
                               <Button 
                                 variant="outline" 
                                 size="icon" 
-                                onClick={() => {
-                                  if (confirm("Are you sure you want to delete this leave policy?")) {
-                                    deleteMutation.mutate(policy.id);
-                                  }
+                                onClick={async () => {
+                                  await confirm({
+                                    title: "Delete Leave Policy",
+                                    description: "Are you sure you want to delete this leave policy?",
+                                    confirmText: "Delete",
+                                    cancelText: "Cancel",
+                                    variant: "destructive",
+                                    onConfirm: () => {
+                                      deleteMutation.mutate(policy.id);
+                                    }
+                                  });
                                 }}
                                 disabled={deleteMutation.isPending}
                                 data-testid={`button-delete-${policy.id}`}

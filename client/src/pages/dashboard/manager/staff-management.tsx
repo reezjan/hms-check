@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Users, UserPlus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function StaffManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -154,10 +155,19 @@ export default function StaffManagement() {
     });
   };
 
-  const handleDeleteStaff = (staffMember: any) => {
-    if (window.confirm(`Are you sure you want to remove ${staffMember.username}?`)) {
-      deleteStaffMutation.mutate(staffMember.id);
-    }
+  const { confirm } = useConfirmDialog();
+
+  const handleDeleteStaff = async (staffMember: any) => {
+    await confirm({
+      title: "Remove Staff Member",
+      description: `Are you sure you want to remove ${staffMember.username}? This action cannot be undone.`,
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteStaffMutation.mutate(staffMember.id);
+      }
+    });
   };
 
   const handleResetPassword = (staffMember: any) => {

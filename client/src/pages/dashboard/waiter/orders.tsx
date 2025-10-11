@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Clock, CheckCircle2, Trash2, Edit } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { getStatusColor } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ export default function WaiterOrders() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { confirm } = useConfirmDialog();
 
   const { data: orders = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/kot-orders"],
@@ -56,9 +58,16 @@ export default function WaiterOrders() {
       return;
     }
     
-    if (confirm("Are you sure you want to delete this order?")) {
-      deleteOrderMutation.mutate(orderId);
-    }
+    await confirm({
+      title: "Delete Order",
+      description: "Are you sure you want to delete this order? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteOrderMutation.mutate(orderId);
+      }
+    });
   };
 
   const handleEditOrder = (orderId: string) => {

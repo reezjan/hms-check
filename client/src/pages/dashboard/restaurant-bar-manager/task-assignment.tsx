@@ -11,8 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ClipboardList, Plus, Users, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function TaskAssignment() {
+  const { confirm } = useConfirmDialog();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: "",
@@ -116,19 +118,26 @@ export default function TaskAssignment() {
   };
 
   const handleDeleteTask = async (task: any) => {
-    if (confirm(`Are you sure you want to delete "${task.title}"?`)) {
-      try {
-        const response = await fetch(`/api/hotels/current/tasks/${task.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error("Failed to delete task");
-        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/tasks"] });
-        toast.success("Task deleted successfully");
-      } catch (error: any) {
-        toast.error(error.message);
+    await confirm({
+      title: "Delete Task",
+      description: `Are you sure you want to delete "${task.title}"?`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/hotels/current/tasks/${task.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          if (!response.ok) throw new Error("Failed to delete task");
+          queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/tasks"] });
+          toast.success("Task deleted successfully");
+        } catch (error: any) {
+          toast.error(error.message);
+        }
       }
-    }
+    });
   };
 
   const getStatusIcon = (status: string) => {

@@ -24,6 +24,7 @@ import { insertGuestSchema, type Guest } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
 import { COUNTRIES } from "@/lib/constants";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 const guestFormSchema = insertGuestSchema.extend({
   dateOfBirth: z.date().optional().nullable()
@@ -34,6 +35,7 @@ type GuestFormData = z.infer<typeof guestFormSchema>;
 export default function GuestsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { confirm } = useConfirmDialog();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
@@ -161,10 +163,17 @@ export default function GuestsPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteGuest = (guestId: string) => {
-    if (confirm("Are you sure you want to delete this guest?")) {
-      deleteGuestMutation.mutate(guestId);
-    }
+  const handleDeleteGuest = async (guestId: string) => {
+    await confirm({
+      title: "Delete Guest",
+      description: "Are you sure you want to delete this guest?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteGuestMutation.mutate(guestId);
+      }
+    });
   };
 
   const filteredGuests = guests.filter(guest => {

@@ -12,12 +12,14 @@ import { Table2, ShoppingCart, Receipt, Search, Plus, Minus } from "lucide-react
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 
 export default function WaiterDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { confirm } = useConfirmDialog();
   const [selectedTable, setSelectedTable] = useState<any>(null);
   const [currentOrder, setCurrentOrder] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -154,10 +156,17 @@ export default function WaiterDashboard() {
     updateOrderMutation.mutate({ orderId: order.id, status: newStatus });
   };
 
-  const handleDeleteOrder = (orderId: string) => {
-    if (window.confirm('Are you sure you want to delete this order?')) {
-      deleteOrderMutation.mutate(orderId);
-    }
+  const handleDeleteOrder = async (orderId: string) => {
+    await confirm({
+      title: "Delete Order",
+      description: "Are you sure you want to delete this order? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: () => {
+        deleteOrderMutation.mutate(orderId);
+      }
+    });
   };
 
   const handleEditOrder = (order: any) => {

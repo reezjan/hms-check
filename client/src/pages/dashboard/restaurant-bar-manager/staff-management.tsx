@@ -11,8 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from "@/components/ui/switch";
 import { Users, UserPlus, ChefHat, Coffee } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
 export default function RestaurantStaffManagement() {
+  const { confirm } = useConfirmDialog();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newStaff, setNewStaff] = useState({
     username: "",
@@ -91,21 +93,28 @@ export default function RestaurantStaffManagement() {
 
 
   const handleDeleteStaff = async (staff: any) => {
-    if (confirm(`Are you sure you want to remove ${staff.username}?`)) {
-      try {
-        const response = await fetch(`/api/hotels/current/users/${staff.id}`, {
-          method: "DELETE",
-          credentials: "include"
-        });
-        if (!response.ok) {
-          throw new Error("Failed to delete staff member");
+    await confirm({
+      title: "Remove Staff Member",
+      description: `Are you sure you want to remove ${staff.username}?`,
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/hotels/current/users/${staff.id}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+          if (!response.ok) {
+            throw new Error("Failed to delete staff member");
+          }
+          queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/users"] });
+          toast.success("Staff member removed successfully");
+        } catch (error: any) {
+          toast.error(error.message);
         }
-        queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/users"] });
-        toast.success("Staff member removed successfully");
-      } catch (error: any) {
-        toast.error(error.message);
       }
-    }
+    });
   };
 
   const columns = [

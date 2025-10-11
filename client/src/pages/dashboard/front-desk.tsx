@@ -40,6 +40,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 import { formatCurrency, getStatusColor, formatDate } from "@/lib/utils";
@@ -53,6 +54,7 @@ export default function FrontDeskDashboard() {
   const queryClient = useQueryClient();
   const ws = useWebSocket();
   const [, setLocation] = useLocation();
+  const { confirm } = useConfirmDialog();
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
@@ -535,15 +537,22 @@ export default function FrontDeskDashboard() {
           if (error.message && error.message.includes('outstanding balance')) {
             const isManager = user?.role?.name === 'manager' || user?.role?.name === 'owner';
             if (isManager) {
-              const confirmOverride = confirm(`${error.message}\n\nAs a manager, do you want to override and check out anyway?`);
-              if (confirmOverride) {
-                await apiRequest("POST", `/api/reservations/${reservationId}/check-out`, {
-                  overrideBalance: true,
-                  overrideReason: 'Manager override from front desk'
-                });
-              } else {
-                throw new Error('Checkout cancelled - payment required');
-              }
+              await confirm({
+                title: "Manager Override Required",
+                description: `${error.message}\n\nAs a manager, do you want to override and check out anyway?`,
+                confirmText: "Override & Check Out",
+                cancelText: "Cancel",
+                variant: "destructive",
+                onConfirm: async () => {
+                  await apiRequest("POST", `/api/reservations/${reservationId}/check-out`, {
+                    overrideBalance: true,
+                    overrideReason: 'Manager override from front desk'
+                  });
+                },
+                onCancel: () => {
+                  throw new Error('Checkout cancelled - payment required');
+                }
+              });
             } else {
               throw error;
             }
