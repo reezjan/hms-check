@@ -20,11 +20,13 @@ export default function WaiterOrders() {
 
   const { data: orders = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/kot-orders"],
+    refetchInterval: 3000,
     select: (data) => data.filter((order: any) => order.createdBy === user?.id),
   });
 
   const { data: tables = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/restaurant-tables"],
+    refetchInterval: 3000,
   });
 
   const deleteOrderMutation = useMutation({

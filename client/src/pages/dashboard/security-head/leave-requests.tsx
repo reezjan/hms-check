@@ -28,6 +28,7 @@ export default function LeaveRequests() {
 
   const { data: myRequests = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/leave-requests/my-requests"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/leave-requests/my-requests", { 
         credentials: "include" 
@@ -39,6 +40,7 @@ export default function LeaveRequests() {
 
   const { data: leaveBalances = [] } = useQuery<any[]>({
     queryKey: ["/api/leave-balances"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/leave-balances", { 
         credentials: "include" 

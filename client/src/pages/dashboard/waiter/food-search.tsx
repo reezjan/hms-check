@@ -12,6 +12,7 @@ export default function WaiterFoodSearch() {
 
   const { data: menuItems = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/menu-items"],
+    refetchInterval: 3000,
   });
 
   const filteredItems = menuItems.filter((item: any) =>

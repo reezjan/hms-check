@@ -28,7 +28,8 @@ export default function SurveillanceOfficerMaintenanceReports() {
   });
 
   const { data: maintenanceRequests = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000
   });
 
   const createMaintenanceMutation = useMutation({

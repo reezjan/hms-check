@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 
 export default function DepartmentStockRequests() {
   const { data: inventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: requests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/stock-requests/department"]
+    queryKey: ["/api/hotels/current/stock-requests/department"],
+    refetchInterval: 3000
   });
 
   const getStatusBadge = (status: string) => {

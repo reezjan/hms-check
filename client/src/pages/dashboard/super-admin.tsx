@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { DataTable } from "@/components/tables/data-table";
@@ -7,19 +7,71 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateHotelModal } from "@/components/modals/create-hotel-modal";
 import { CreateOwnerModal } from "@/components/modals/create-owner-modal";
-import { Hotel, Users, Shield, TrendingUp, Plus } from "lucide-react";
+import { Hotel, Users, Shield, TrendingUp, Plus, Power, PowerOff } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function SuperAdminDashboard() {
   const [isCreateHotelModalOpen, setIsCreateHotelModalOpen] = useState(false);
   const [isCreateOwnerModalOpen, setIsCreateOwnerModalOpen] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'activate' | 'deactivate' | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: hotels = [], isLoading: hotelsLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels"]
+    queryKey: ["/api/hotels"],
+    refetchInterval: 3000,
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery<any[]>({
-    queryKey: ["/api/users"]
+    queryKey: ["/api/users"],
+    refetchInterval: 3000,
   });
+
+  const toggleHotelStatus = useMutation({
+    mutationFn: async ({ hotelId, activate }: { hotelId: string, activate: boolean }) => {
+      const endpoint = activate ? `/api/hotels/${hotelId}/activate` : `/api/hotels/${hotelId}/deactivate`;
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error(`Failed to ${activate ? 'activate' : 'deactivate'} hotel`);
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels"] });
+      toast.success(`Hotel ${variables.activate ? 'activated' : 'deactivated'} successfully`);
+      setShowConfirmDialog(false);
+      setSelectedHotel(null);
+      setConfirmAction(null);
+    },
+    onError: () => {
+      toast.error("Failed to update hotel status");
+    }
+  });
+
+  const handleToggleHotel = (hotel: any, activate: boolean) => {
+    setSelectedHotel(hotel);
+    setConfirmAction(activate ? 'activate' : 'deactivate');
+    setShowConfirmDialog(true);
+  };
+
+  const confirmToggle = () => {
+    if (selectedHotel && confirmAction) {
+      toggleHotelStatus.mutate({
+        hotelId: selectedHotel.id,
+        activate: confirmAction === 'activate'
+      });
+    }
+  };
 
   const hotelColumns = [
     { key: "name", label: "Hotel Name", sortable: true },
@@ -27,9 +79,13 @@ export default function SuperAdminDashboard() {
     { key: "vatNo", label: "VAT No", sortable: true },
     { key: "createdAt", label: "Created", sortable: true },
     { 
-      key: "status", 
+      key: "isActive", 
       label: "Status", 
-      render: () => <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span>
+      render: (value: boolean) => (
+        <span className={`px-2 py-1 rounded-full text-xs ${value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {value ? 'Active' : 'Inactive'}
+        </span>
+      )
     }
   ];
 
@@ -49,13 +105,22 @@ export default function SuperAdminDashboard() {
   ];
 
   const hotelActions = [
-    { label: "Edit", action: (row: any) => console.log("Edit hotel:", row) },
-    { label: "Delete", action: (row: any) => console.log("Delete hotel:", row), variant: "destructive" as const }
+    { 
+      label: "Activate", 
+      action: (row: any) => handleToggleHotel(row, true),
+      variant: "default" as const,
+      show: (row: any) => !row.isActive
+    },
+    { 
+      label: "Deactivate", 
+      action: (row: any) => handleToggleHotel(row, false),
+      variant: "destructive" as const,
+      show: (row: any) => row.isActive
+    }
   ];
 
   const ownerActions = [
-    { label: "Edit", action: (row: any) => console.log("Edit owner:", row) },
-    { label: "Deactivate", action: (row: any) => console.log("Deactivate owner:", row), variant: "destructive" as const }
+    { label: "View Details", action: (row: any) => console.log("View owner:", row) }
   ];
 
   const owners = users.filter(user => user.role?.name === 'owner');
@@ -70,61 +135,26 @@ export default function SuperAdminDashboard() {
             value={hotels.length}
             icon={<Hotel />}
             iconColor="text-primary"
-            trend={{ value: 12, label: "this month", isPositive: true }}
+          />
+          <StatsCard
+            title="Active Hotels"
+            value={hotels.filter(h => h.isActive).length}
+            icon={<Power />}
+            iconColor="text-green-500"
           />
           <StatsCard
             title="Total Owners"
             value={owners.length}
             icon={<Users />}
-            iconColor="text-green-500"
-            trend={{ value: 8, label: "this month", isPositive: true }}
+            iconColor="text-blue-500"
           />
           <StatsCard
             title="Super Admins"
             value={users.filter(u => u.role?.name === 'super_admin').length}
             icon={<Shield />}
-            iconColor="text-blue-500"
-          />
-          <StatsCard
-            title="System Health"
-            value="99.9%"
-            icon={<TrendingUp />}
             iconColor="text-orange-500"
-            trend={{ value: 0.1, label: "uptime", isPositive: true }}
           />
         </div>
-
-        {/* Recent Activities */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent System Activities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-secondary rounded" data-testid="activity-item-hotel-created">
-                <div className="flex items-center">
-                  <Hotel className="text-primary mr-3 h-5 w-5" />
-                  <span className="text-foreground">New hotel "Mountain View Resort" created</span>
-                </div>
-                <span className="text-xs text-muted-foreground">2 hours ago</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-secondary rounded" data-testid="activity-item-owner-created">
-                <div className="flex items-center">
-                  <Users className="text-green-500 mr-3 h-5 w-5" />
-                  <span className="text-foreground">Owner account created for John Smith</span>
-                </div>
-                <span className="text-xs text-muted-foreground">4 hours ago</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-secondary rounded" data-testid="activity-item-superadmin-login">
-                <div className="flex items-center">
-                  <Shield className="text-blue-500 mr-3 h-5 w-5" />
-                  <span className="text-foreground">Super Admin login from new location detected</span>
-                </div>
-                <span className="text-xs text-muted-foreground">6 hours ago</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Hotel Management */}
         <DataTable
@@ -195,6 +225,42 @@ export default function SuperAdminDashboard() {
         isOpen={isCreateOwnerModalOpen} 
         onClose={() => setIsCreateOwnerModalOpen(false)} 
       />
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmAction === 'activate' ? 'Activate Hotel' : 'Deactivate Hotel'}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmAction === 'activate' 
+                ? `Are you sure you want to activate "${selectedHotel?.name}"? Users will be able to log in again.`
+                : `Are you sure you want to deactivate "${selectedHotel?.name}"? All users from this hotel will be unable to log in, but their data will be preserved.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirmDialog(false);
+                setSelectedHotel(null);
+                setConfirmAction(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={confirmAction === 'activate' ? 'default' : 'destructive'}
+              onClick={confirmToggle}
+              disabled={toggleHotelStatus.isPending}
+            >
+              {toggleHotelStatus.isPending ? 'Processing...' : confirmAction === 'activate' ? 'Activate' : 'Deactivate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

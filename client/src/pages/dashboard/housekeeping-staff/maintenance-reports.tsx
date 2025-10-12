@@ -30,6 +30,7 @@ export default function HousekeepingStaffMaintenanceReports() {
 
   const { data: myRequests = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/maintenance-requests", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch maintenance requests");

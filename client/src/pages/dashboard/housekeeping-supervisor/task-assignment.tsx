@@ -30,15 +30,18 @@ export default function HousekeepingSupervisorTaskAssignment() {
   });
 
   const { data: tasks = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/tasks"]
+    queryKey: ["/api/hotels/current/tasks"],
+    refetchInterval: 3000
   });
 
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   // Enable real-time updates

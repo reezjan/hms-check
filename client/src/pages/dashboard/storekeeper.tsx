@@ -10,35 +10,42 @@ export default function StorekeeperDashboard() {
   const [, setLocation] = useLocation();
 
   const { data: inventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: lowStockItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/low-stock-items"]
+    queryKey: ["/api/hotels/current/low-stock-items"],
+    refetchInterval: 3000
   });
 
   const { data: tasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/tasks/my-tasks"]
+    queryKey: ["/api/tasks/my-tasks"],
+    refetchInterval: 3000
   });
 
   const { data: stockRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/stock-requests/pending"]
+    queryKey: ["/api/hotels/current/stock-requests/pending"],
+    refetchInterval: 3000
   });
 
   // Real-time updates for stock requests
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/stock-requests/pending"],
+    refetchInterval: 3000,
     events: ['stock-request:created', 'stock-request:updated']
   });
 
   // Real-time updates for inventory and tasks
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000,
     events: ['stock:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/tasks/my-tasks"],
+    refetchInterval: 3000,
     events: ['task:created', 'task:updated', 'task:deleted']
   });
 

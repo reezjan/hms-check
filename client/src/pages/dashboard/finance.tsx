@@ -74,39 +74,46 @@ export default function FinanceDashboard() {
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   // Listen for real-time transaction updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
   // Listen for real-time user updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     events: ['user:created', 'user:updated']
   });
 
   // Listen for real-time maintenance updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     events: ['maintenance:updated', 'maintenance:created']
   });
 
   const { data: maintenanceRequests = [], isLoading: maintenanceLoading } = useQuery<MaintenanceRequest[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/hotels/current/vendors"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: users = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 

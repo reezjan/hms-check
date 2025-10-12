@@ -26,6 +26,7 @@ export default function FinanceMaintenanceRequests() {
 
   const { data: myRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     select: (data: any) => {
       return data.filter((req: any) => req.reportedBy?.id === user?.id || req.reportedBy === user?.id);
     }

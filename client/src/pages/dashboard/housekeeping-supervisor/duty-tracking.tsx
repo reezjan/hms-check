@@ -9,6 +9,7 @@ import { formatDateTime } from "@/lib/utils";
 export default function HousekeepingSupervisorDutyTracking() {
   const { data: staff = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/users", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch staff");
@@ -18,6 +19,7 @@ export default function HousekeepingSupervisorDutyTracking() {
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
     queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/attendance/daily", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch attendance");

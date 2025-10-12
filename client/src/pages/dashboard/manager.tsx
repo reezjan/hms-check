@@ -15,23 +15,28 @@ export default function ManagerDashboard() {
   const ws = useWebSocket();
   
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"]
+    queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000
   });
 
   const { data: vouchers = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vouchers"]
+    queryKey: ["/api/hotels/current/vouchers"],
+    refetchInterval: 3000
   });
 
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"]
+    queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000
   });
 
   // Real-time updates via WebSocket
@@ -240,12 +245,12 @@ export default function ManagerDashboard() {
                   <div className="flex items-center">
                     <CreditCard className="text-blue-500 mr-3 h-5 w-5" />
                     <div>
-                      <span className="text-foreground font-medium">{payment.purpose || 'Vendor Payment'}</span>
+                      <span className="font-medium">{payment.purpose || 'Vendor Payment'}</span>
                       <p className="text-sm text-muted-foreground">Payment method: {payment.paymentMethod}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-foreground">रु{Number(payment.amount).toLocaleString()}</span>
+                    <span className="font-bold">रु{Number(payment.amount).toLocaleString()}</span>
                     <p className="text-xs text-muted-foreground">{new Date(payment.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>

@@ -35,31 +35,38 @@ export default function CashierDashboard() {
   const [selectedAmenities, setSelectedAmenities] = useState<any[]>([]);
 
   const { data: hotel } = useQuery<any>({
-    queryKey: ["/api/hotels/current"]
+    queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000
   });
 
   const { data: menuItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/menu-items"]
+    queryKey: ["/api/hotels/current/menu-items"],
+    refetchInterval: 3000
   });
 
   const { data: hotelTaxes = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/taxes"]
+    queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000
   });
 
   const { data: halls = [] } = useQuery<any[]>({
-    queryKey: ["/api/halls"]
+    queryKey: ["/api/halls"],
+    refetchInterval: 3000
   });
 
   const { data: pools = [] } = useQuery<any[]>({
-    queryKey: ["/api/pools"]
+    queryKey: ["/api/pools"],
+    refetchInterval: 3000
   });
 
   const { data: services = [] } = useQuery<any[]>({
-    queryKey: ["/api/services"]
+    queryKey: ["/api/services"],
+    refetchInterval: 3000
   });
 
   const { data: tasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/users", user?.id, "tasks"]
+    queryKey: ["/api/users", user?.id, "tasks"],
+    refetchInterval: 3000
   });
 
   const cashDepositForm = useForm({

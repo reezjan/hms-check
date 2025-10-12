@@ -21,55 +21,68 @@ export default function Report() {
   });
 
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"]
+    queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000
   });
 
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: inventory = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: maintenanceRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000
   });
 
   const { data: vendors = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vendors"]
+    queryKey: ["/api/hotels/current/vendors"],
+    refetchInterval: 3000
   });
 
   const { data: vouchers = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vouchers"]
+    queryKey: ["/api/hotels/current/vouchers"],
+    refetchInterval: 3000
   });
 
   const { data: stockRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/stock-requests"]
+    queryKey: ["/api/hotels/current/stock-requests"],
+    refetchInterval: 3000
   });
 
   const { data: kotOrders = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/kot-orders"]
+    queryKey: ["/api/hotels/current/kot-orders"],
+    refetchInterval: 3000
   });
 
   const { data: consumptions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-consumptions"]
+    queryKey: ["/api/hotels/current/inventory-consumptions"],
+    refetchInterval: 3000
   });
 
   const { data: reservations = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/reservations"]
+    queryKey: ["/api/hotels/current/reservations"],
+    refetchInterval: 3000
   });
 
   const { data: hallBookings = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/hall-bookings"]
+    queryKey: ["/api/hotels/current/hall-bookings"],
+    refetchInterval: 3000
   });
 
   const { data: menuItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/menu-items"]
+    queryKey: ["/api/hotels/current/menu-items"],
+    refetchInterval: 3000
   });
 
   const { data: guests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/guests"]
+    queryKey: ["/api/hotels/current/guests"],
+    refetchInterval: 3000
   });
 
   const filteredVouchers = vouchers.filter((v: any) => {

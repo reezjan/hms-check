@@ -14,7 +14,8 @@ export default function WaiterMyTasks() {
   const queryClient = useQueryClient();
 
   const { data: tasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/tasks"]
+    queryKey: ["/api/hotels/current/tasks"],
+    refetchInterval: 3000
   });
 
   const updateTaskMutation = useMutation({

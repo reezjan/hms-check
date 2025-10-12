@@ -8,21 +8,25 @@ import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function FinancialOverview() {
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"]
+    queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000
   });
 
   const { data: payments = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/payments"]
+    queryKey: ["/api/hotels/current/payments"],
+    refetchInterval: 3000
   });
 
   // Real-time updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/payments"],
+    refetchInterval: 3000,
     events: ['payment:created', 'payment:updated']
   });
 

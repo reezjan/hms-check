@@ -87,71 +87,85 @@ export default function FrontDeskDashboard() {
 
   const { data: hotel } = useQuery<any>({
     queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: guests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/guests"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: rooms = [] } = useQuery<Array<Room & { roomType?: RoomType }>>({
     queryKey: ["/api/hotels", user?.hotelId, "rooms"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: tasks = [] } = useQuery<Task[]>({
     queryKey: ["/api/users", user?.id, "tasks"],
+    refetchInterval: 3000,
     enabled: !!user?.id
   });
 
   const { data: roomServiceOrders = [] } = useQuery<RoomServiceOrder[]>({
     queryKey: ["/api/hotels", user?.hotelId, "room-service-orders"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: mealPlans = [] } = useQuery<MealPlan[]>({
     queryKey: ["/api/hotels", user?.hotelId, "meal-plans"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: vouchers = [] } = useQuery<Voucher[]>({
     queryKey: ["/api/hotels", user?.hotelId, "vouchers"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: menuItems = [] } = useQuery<Array<MenuItem & { category?: MenuCategory }>>({
     queryKey: ["/api/hotels", user?.hotelId, "menu-items"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: menuCategories = [] } = useQuery<MenuCategory[]>({
     queryKey: ["/api/hotels", user?.hotelId, "menu-categories"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: hotelTaxes = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: reservations = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/reservations"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: services = [] } = useQuery<any[]>({
     queryKey: ["/api/services"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: roomServiceCharges = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/room-service-charges"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
@@ -183,26 +197,31 @@ export default function FrontDeskDashboard() {
   // Real-time updates for services and other resources
   useRealtimeQuery({
     queryKey: ["/api/services"],
+    refetchInterval: 3000,
     events: ['service:created', 'service:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000,
     events: ['room:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/guests"],
+    refetchInterval: 3000,
     events: ['guest:created', 'guest:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/room-service-charges"],
+    refetchInterval: 3000,
     events: ['room-service-charge:created', 'room-service-charge:deleted']
   });
 

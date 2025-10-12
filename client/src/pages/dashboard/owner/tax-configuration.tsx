@@ -22,16 +22,19 @@ export default function TaxConfiguration() {
   const queryClient = useQueryClient();
 
   const { data: hotelTaxes = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/taxes"]
+    queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000
   });
 
   const { data: hotel } = useQuery<any>({
-    queryKey: ["/api/hotels/current"]
+    queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000
   });
 
   // Real-time updates for tax configuration changes
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000,
     events: ['tax:updated', 'tax:created']
   });
 

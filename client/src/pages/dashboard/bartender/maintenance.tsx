@@ -27,6 +27,7 @@ export default function BartenderMaintenance() {
 
   const { data: myRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     enabled: !!user,
     select: (data: any) => {
       return data.filter((req: any) => req.reportedBy?.id === user?.id);
@@ -35,6 +36,7 @@ export default function BartenderMaintenance() {
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     events: ['maintenance:created', 'maintenance:updated', 'maintenance:deleted']
   });
 

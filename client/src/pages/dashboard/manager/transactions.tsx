@@ -40,6 +40,7 @@ export default function TransactionsPage() {
   // Fetch transactions
   const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/transactions", { credentials: "include" });
       if (!response.ok) {

@@ -28,15 +28,18 @@ export default function WaiterDashboard() {
   const [editedItems, setEditedItems] = useState<Record<string, number>>({});
 
   const { data: tables = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/restaurant-tables"]
+    queryKey: ["/api/hotels/current/restaurant-tables"],
+    refetchInterval: 3000
   });
 
   const { data: menuItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/menu-items"]
+    queryKey: ["/api/hotels/current/menu-items"],
+    refetchInterval: 3000
   });
 
   const { data: kotOrders = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/kot-orders"]
+    queryKey: ["/api/hotels/current/kot-orders"],
+    refetchInterval: 3000
   });
 
   const createOrderMutation = useMutation({

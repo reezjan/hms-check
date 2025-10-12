@@ -11,7 +11,8 @@ export default function SecurityHeadVehicleLogs() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: vehicleLogs = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vehicle-logs"]
+    queryKey: ["/api/hotels/current/vehicle-logs"],
+    refetchInterval: 3000
   });
 
   const activeVehicles = vehicleLogs.filter(v => !v.checkOut);

@@ -7,11 +7,13 @@ import { formatDateTime } from "@/lib/utils";
 
 export default function WaiterDutyStatus() {
   const { data: attendanceStatus } = useQuery<any>({
-    queryKey: ["/api/attendance/status"]
+    queryKey: ["/api/attendance/status"],
+    refetchInterval: 3000
   });
 
   const { data: attendanceHistory = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/history"]
+    queryKey: ["/api/attendance/history"],
+    refetchInterval: 3000
   });
 
   const isOnDuty = attendanceStatus?.isOnDuty || false;

@@ -22,52 +22,63 @@ export default function Reports() {
   const [reportType, setReportType] = useState('financial');
 
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"]
+    queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000
   });
 
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"]
+    queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000
   });
 
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: inventory = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   const { data: vendors = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vendors"]
+    queryKey: ["/api/hotels/current/vendors"],
+    refetchInterval: 3000
   });
 
   // Real-time updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000,
     events: ['room:updated', 'room:created']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     events: ['user:created', 'user:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000,
     events: ['inventory:created', 'inventory:updated', 'inventory:deleted']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000,
     events: ['attendance:updated']
   });
 

@@ -56,25 +56,30 @@ export default function StaffManagement() {
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
 
   const { data: staff = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: roles = [] } = useQuery<any[]>({
-    queryKey: ["/api/roles"]
+    queryKey: ["/api/roles"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   // Real-time updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     events: ['user:created', 'user:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000,
     events: ['attendance:updated']
   });
 

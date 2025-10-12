@@ -46,26 +46,31 @@ export default function SecurityHeadDashboard() {
 
   // Fetch surveillance officers
   const { data: officers = [], isLoading: officersLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/security/officers"]
+    queryKey: ["/api/hotels/current/security/officers"],
+    refetchInterval: 3000
   });
 
   // Fetch tasks
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/security/tasks"]
+    queryKey: ["/api/hotels/current/security/tasks"],
+    refetchInterval: 3000
   });
 
   // Fetch vehicle logs
   const { data: vehicleLogs = [], isLoading: vehicleLogsLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vehicle-logs"]
+    queryKey: ["/api/hotels/current/vehicle-logs"],
+    refetchInterval: 3000
   });
 
   // Fetch maintenance requests (filter officer-submitted ones)
   const { data: allMaintenanceRequests = [], isLoading: maintenanceLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   // Filter maintenance requests from surveillance officers

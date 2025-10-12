@@ -46,12 +46,14 @@ export default function GuestsPage() {
 
   const { data: guests = [], isLoading } = useQuery<Guest[]>({
     queryKey: ["/api/hotels/current/guests"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   // Listen for real-time guest updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/guests"],
+    refetchInterval: 3000,
     events: ['guest:created', 'guest:updated']
   });
 

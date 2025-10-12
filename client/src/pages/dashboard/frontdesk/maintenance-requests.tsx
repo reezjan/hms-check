@@ -26,6 +26,7 @@ export default function FrontdeskMaintenanceRequests() {
 
   const { data: myRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     select: (data: any) => {
       return data.filter((req: any) => req.reportedBy === user?.id);
     }

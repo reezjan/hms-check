@@ -19,11 +19,13 @@ export default function HallCalendar() {
 
   const { data: halls = [] } = useQuery<Hall[]>({
     queryKey: ["/api/halls"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: calendarData } = useQuery({
     queryKey: ["/api/halls", selectedHall, "calendar", format(currentDate, "yyyy-MM-dd")],
+    refetchInterval: 3000,
     enabled: !!selectedHall,
     queryFn: async () => {
       const response = await fetch(`/api/halls/${selectedHall}/calendar?date=${format(currentDate, "yyyy-MM-dd")}`, {

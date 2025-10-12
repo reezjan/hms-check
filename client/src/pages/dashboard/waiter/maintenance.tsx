@@ -27,6 +27,7 @@ export default function WaiterMaintenance() {
 
   const { data: myRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     select: (data: any) => {
       return data.filter((req: any) => req.reportedBy?.id === user?.id);
     }
@@ -34,6 +35,7 @@ export default function WaiterMaintenance() {
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000,
     events: ['maintenance:created', 'maintenance:updated', 'maintenance:deleted']
   });
 

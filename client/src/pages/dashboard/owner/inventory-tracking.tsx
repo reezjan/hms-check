@@ -37,16 +37,19 @@ export default function InventoryTracking() {
   const [stockQty, setStockQty] = useState("");
   
   const { data: inventory = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: consumptions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-consumptions"]
+    queryKey: ["/api/hotels/current/inventory-consumptions"],
+    refetchInterval: 3000
   });
 
   // Real-time updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000,
     events: ['inventory:created', 'inventory:updated', 'inventory:deleted']
   });
 

@@ -62,6 +62,7 @@ export default function VendorPayments() {
   // Get current user and hotel info
   const { data: currentUser, isLoading: userLoading } = useQuery<any>({
     queryKey: ["/api/user"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/user", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch user");
@@ -72,6 +73,7 @@ export default function VendorPayments() {
   // Fetch vendors for this hotel
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/hotels/current/vendors"],
+    refetchInterval: 3000,
     enabled: !!currentUser?.hotelId,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/vendors", { credentials: "include" });
@@ -83,6 +85,7 @@ export default function VendorPayments() {
   // Fetch vendor payments (transactions with vendorId)
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!currentUser?.hotelId,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/transactions", { credentials: "include" });

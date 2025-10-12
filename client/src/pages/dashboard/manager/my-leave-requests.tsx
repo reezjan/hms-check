@@ -27,22 +27,26 @@ export default function ManagerLeaveRequests() {
 
   // Fetch user's own leave requests
   const { data: myRequests = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/leave-requests/my-requests"]
+    queryKey: ["/api/hotels/current/leave-requests/my-requests"],
+    refetchInterval: 3000
   });
 
   // Fetch leave balances
   const { data: leaveBalances = [] } = useQuery<any[]>({
-    queryKey: ["/api/leave-balances"]
+    queryKey: ["/api/leave-balances"],
+    refetchInterval: 3000
   });
 
   // Real-time updates for leave requests
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/leave-requests/my-requests"],
+    refetchInterval: 3000,
     events: ['leave:created', 'leave:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/leave-balances"],
+    refetchInterval: 3000,
     events: ['leave:created', 'leave:updated']
   });
 

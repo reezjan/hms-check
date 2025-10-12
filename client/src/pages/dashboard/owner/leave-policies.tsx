@@ -36,16 +36,19 @@ export default function LeavePoliciesPage() {
   });
 
   const { data: hotel } = useQuery<any>({
-    queryKey: ["/api/hotels/current"]
+    queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000
   });
 
   const { data: policies = [], isLoading } = useQuery<LeavePolicy[]>({
-    queryKey: ["/api/hotels/current/leave-policies"]
+    queryKey: ["/api/hotels/current/leave-policies"],
+    refetchInterval: 3000
   });
 
   // Real-time updates for leave policy changes
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/leave-policies"],
+    refetchInterval: 3000,
     events: ['leave-policy:created', 'leave-policy:updated', 'leave-policy:deleted']
   });
 

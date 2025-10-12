@@ -61,28 +61,34 @@ export default function CashierTableBilling() {
   const [historyStatus, setHistoryStatus] = useState("");
 
   const { data: hotel } = useQuery<any>({
-    queryKey: ["/api/hotels/current"]
+    queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000
   });
 
   const { data: tables = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/restaurant-tables"],
+    refetchInterval: 3000,
   });
 
   const { data: kotOrders = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/kot-orders"],
+    refetchInterval: 3000,
   });
 
   const { data: menuItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/menu-items"]
+    queryKey: ["/api/hotels/current/menu-items"],
+    refetchInterval: 3000
   });
 
   const { data: hotelTaxes = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/taxes"]
+    queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000
   });
 
   // Fetch bill history
   const { data: billHistory = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/bills", historyStartDate, historyEndDate, historyStatus],
+    refetchInterval: 3000,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (historyStartDate) params.append("startDate", historyStartDate);

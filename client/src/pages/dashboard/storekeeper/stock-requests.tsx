@@ -13,16 +13,19 @@ export default function StorekeeperStockRequests() {
   const queryClient = useQueryClient();
 
   const { data: inventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: pendingRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/stock-requests/pending"]
+    queryKey: ["/api/hotels/current/stock-requests/pending"],
+    refetchInterval: 3000
   });
 
   // Real-time updates for stock requests
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/stock-requests/pending"],
+    refetchInterval: 3000,
     events: ['stock-request:created', 'stock-request:updated']
   });
 

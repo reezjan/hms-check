@@ -12,15 +12,18 @@ export default function SurveillanceOfficerDashboard() {
   const { user } = useAuth();
   
   const { data: tasks = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/security/tasks"]
+    queryKey: ["/api/hotels/current/security/tasks"],
+    refetchInterval: 3000
   });
 
   const { data: vehicleLogs = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vehicle-logs"]
+    queryKey: ["/api/hotels/current/vehicle-logs"],
+    refetchInterval: 3000
   });
 
   const { data: maintenanceRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000
   });
 
   const myTasks = tasks.filter(t => t.assignedTo === user?.id);

@@ -65,11 +65,13 @@ export default function HallBookings() {
 
   const { data: halls = [] } = useQuery<Hall[]>({
     queryKey: ["/api/halls"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: bookings = [] } = useQuery<SelectHallBooking[]>({
     queryKey: ["/api/hotels", user?.hotelId, "hall-bookings"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 

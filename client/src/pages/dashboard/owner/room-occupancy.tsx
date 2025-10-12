@@ -68,29 +68,35 @@ export default function RoomOccupancy() {
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
   
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"]
+    queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000
   });
 
   const { data: roomTypes = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/room-types"]
+    queryKey: ["/api/hotels/current/room-types"],
+    refetchInterval: 3000
   });
 
   const { data: reservations = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/reservations"]
+    queryKey: ["/api/hotels/current/reservations"],
+    refetchInterval: 3000
   });
 
   const { data: mealPlans = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels", user?.hotelId, "meal-plans"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: hotelTaxes = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/taxes"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 

@@ -14,7 +14,8 @@ export default function SurveillanceOfficerMyTasks() {
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/security/tasks"]
+    queryKey: ["/api/hotels/current/security/tasks"],
+    refetchInterval: 3000
   });
 
   const updateTaskMutation = useMutation({

@@ -13,7 +13,8 @@ export default function StorekeeperMyTasks() {
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/tasks/my-tasks"]
+    queryKey: ["/api/tasks/my-tasks"],
+    refetchInterval: 3000
   });
 
   const updateTaskMutation = useMutation({

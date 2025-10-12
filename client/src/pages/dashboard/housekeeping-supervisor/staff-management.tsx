@@ -43,6 +43,7 @@ export default function HousekeepingSupervisorStaffManagement() {
 
   const { data: allStaff = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/users", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch staff");
@@ -52,6 +53,7 @@ export default function HousekeepingSupervisorStaffManagement() {
 
   const { data: roles = [], isLoading: rolesLoading } = useQuery<any[]>({
     queryKey: ["/api/roles"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/roles", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch roles");
@@ -60,7 +62,8 @@ export default function HousekeepingSupervisorStaffManagement() {
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   const housekeepingStaff = allStaff.filter(s => s.role?.name === 'housekeeping_staff');

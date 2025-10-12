@@ -43,7 +43,8 @@ export default function RequestStock() {
   const [availableUnits, setAvailableUnits] = useState<UnitCode[]>([]);
 
   const { data: allInventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   // Map role names to department names for filtering
@@ -73,7 +74,8 @@ export default function RequestStock() {
   }, [allInventoryItems, user]);
 
   const { data: myRequests = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/stock-requests/my-requests"]
+    queryKey: ["/api/hotels/current/stock-requests/my-requests"],
+    refetchInterval: 3000
   });
 
   const form = useForm<RequestStockForm>({

@@ -10,11 +10,13 @@ export default function StorekeeperInventoryTracking() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: inventoryItems = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: lowStockItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/low-stock-items"]
+    queryKey: ["/api/hotels/current/low-stock-items"],
+    refetchInterval: 3000
   });
 
   const filteredItems = inventoryItems.filter((item: any) =>

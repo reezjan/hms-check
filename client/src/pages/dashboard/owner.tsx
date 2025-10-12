@@ -16,27 +16,33 @@ export default function OwnerDashboard() {
   const ws = useWebSocket();
   
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"]
+    queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000
   });
 
   const { data: rooms = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/rooms"]
+    queryKey: ["/api/hotels/current/rooms"],
+    refetchInterval: 3000
   });
 
   const { data: users = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/users"]
+    queryKey: ["/api/hotels/current/users"],
+    refetchInterval: 3000
   });
 
   const { data: inventory = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const { data: hotel } = useQuery<any>({
-    queryKey: ["/api/hotels/current"]
+    queryKey: ["/api/hotels/current"],
+    refetchInterval: 3000
   });
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
-    queryKey: ["/api/attendance/daily"]
+    queryKey: ["/api/attendance/daily"],
+    refetchInterval: 3000
   });
 
   // Real-time updates via WebSocket

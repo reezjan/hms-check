@@ -39,17 +39,20 @@ export default function SurveillanceOfficerDashboard() {
 
   // Fetch my tasks
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/security/tasks"]
+    queryKey: ["/api/hotels/current/security/tasks"],
+    refetchInterval: 3000
   });
 
   // Fetch vehicle logs
   const { data: vehicleLogs = [], isLoading: vehicleLogsLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/vehicle-logs"]
+    queryKey: ["/api/hotels/current/vehicle-logs"],
+    refetchInterval: 3000
   });
 
   // Fetch my maintenance requests
   const { data: maintenanceRequests = [], isLoading: maintenanceLoading } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/maintenance-requests"]
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    refetchInterval: 3000
   });
 
   // Vehicle check-in mutation

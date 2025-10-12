@@ -23,6 +23,7 @@ export default function LeaveApprovals() {
   // Fetch pending leave requests for approval
   const { data: pendingRequests = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/leave-requests/pending-approvals"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/leave-requests/pending-approvals", { 
         credentials: "include" 
@@ -35,6 +36,7 @@ export default function LeaveApprovals() {
   // Fetch all leave requests for overview
   const { data: allRequests = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/leave-requests"],
+    refetchInterval: 3000,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/leave-requests", { 
         credentials: "include" 
@@ -47,11 +49,13 @@ export default function LeaveApprovals() {
   // Real-time updates for leave requests
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/leave-requests/pending-approvals"],
+    refetchInterval: 3000,
     events: ['leave:created', 'leave:updated']
   });
 
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/leave-requests"],
+    refetchInterval: 3000,
     events: ['leave:created', 'leave:updated']
   });
 

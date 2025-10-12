@@ -14,18 +14,47 @@ export default function FinanceRevenuePage() {
 
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   // Listen for real-time transaction updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
-  // Filter revenue transactions
+  // Filter revenue transactions by type and period
+  const getDateFilter = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (period) {
+      case 'today':
+        return (t: any) => {
+          const txnDate = new Date(t.createdAt);
+          return txnDate >= today;
+        };
+      case 'week':
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        return (t: any) => new Date(t.createdAt) >= weekStart;
+      case 'month':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        return (t: any) => new Date(t.createdAt) >= monthStart;
+      case 'year':
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        return (t: any) => new Date(t.createdAt) >= yearStart;
+      default:
+        return () => true;
+    }
+  };
+
+  const dateFilter = getDateFilter();
   const revenueTransactions = transactions.filter(t => 
-    t.txnType === 'cash_in' || t.txnType === 'pos_in' || t.txnType === 'fonepay_in' || t.txnType?.includes('_in')
+    (t.txnType === 'cash_in' || t.txnType === 'pos_in' || t.txnType === 'fonepay_in' || t.txnType?.includes('_in')) &&
+    dateFilter(t)
   );
 
   // Categorize revenue by department based on purpose

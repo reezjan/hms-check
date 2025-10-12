@@ -10,11 +10,13 @@ export default function StorekeeperConsumptionTracking() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: consumptions = [], isLoading: loadingConsumptions } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-consumptions"]
+    queryKey: ["/api/hotels/current/inventory-consumptions"],
+    refetchInterval: 3000
   });
 
   const { data: inventoryItems = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/inventory-items"]
+    queryKey: ["/api/hotels/current/inventory-items"],
+    refetchInterval: 3000
   });
 
   const enrichedConsumptions = consumptions.map((consumption: any) => {

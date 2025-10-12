@@ -24,17 +24,20 @@ export default function FinanceExpensesPage() {
 
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
   // Listen for real-time transaction updates
   useRealtimeQuery({
     queryKey: ["/api/hotels/current/transactions"],
+    refetchInterval: 3000,
     events: ['transaction:created', 'transaction:updated']
   });
 
   const { data: vendors = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/vendors"],
+    refetchInterval: 3000,
     enabled: !!user?.hotelId
   });
 
