@@ -116,6 +116,14 @@ export function setupAuth(app: Express) {
         return done(null, false, { message: "Your account has been deactivated. Please contact your manager." });
       }
       
+      // Check if hotel is deactivated (except for super_admin)
+      if (user.hotelId && user.role?.name !== 'super_admin') {
+        const hotel = await storage.getHotel(user.hotelId);
+        if (hotel && !hotel.isActive) {
+          return done(null, false, { message: "This hotel has been deactivated. Please contact support." });
+        }
+      }
+      
       return done(null, user);
     }),
   );

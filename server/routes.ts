@@ -94,6 +94,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/hotels/:id/activate", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const hotel = await storage.updateHotel(id, { isActive: true });
+      res.json(hotel);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to activate hotel" });
+    }
+  });
+
+  app.patch("/api/hotels/:id/deactivate", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const hotel = await storage.updateHotel(id, { isActive: false });
+      res.json(hotel);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to deactivate hotel" });
+    }
+  });
+
   app.delete("/api/hotels/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -3213,23 +3233,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Only manager or owner can approve vendor payments
-        const canApprove = ['manager', 'owner', 'super_admin'].includes(currentUser.role?.name || '');
+        // Only manager, owner, or finance can approve vendor payments
+        const canApprove = ['manager', 'owner', 'super_admin', 'finance'].includes(currentUser.role?.name || '');
         if (!canApprove) {
           return res.status(403).json({ 
-            message: "Only managers can approve vendor payments" 
+            message: "Only managers and finance can approve vendor payments" 
           });
-        }
-        
-        // Large vendor payments require additional verification
-        const amount = Number(sanitizedBody.amount || 0);
-        if (amount > 10000) {
-          const details = sanitizedBody.details || {};
-          if (!details.approvalDocuments || !Array.isArray(details.approvalDocuments) || details.approvalDocuments.length === 0) {
-            return res.status(400).json({ 
-              message: "Vendor payments over Rs. 10,000 require supporting documentation" 
-            });
-          }
         }
       }
       

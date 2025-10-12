@@ -26,6 +26,7 @@ export const hotels = pgTable("hotels", {
   phone: text("phone"),
   zip: text("zip"),
   vatNo: text("vat_no"),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
