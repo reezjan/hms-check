@@ -96,9 +96,15 @@ The project has been successfully imported from GitHub and configured to run in 
 - **Storekeeper**: username `store`, password `storekeeper`
 - See seed script output for all test users
 
-### Recent Updates (October 11, 2025)
+### Recent Updates
 
-**Manager Role Enhancements:**
+**October 12, 2025 - UI/UX Bug Fixes:**
+- Fixed Security Head "View Vehicles" button to navigate to dedicated vehicle logs page at `/security-head/vehicles`
+- Added Attendance Reports page for Owner role with full navigation integration at `/owner/attendance`
+- Extended duty toggle functionality to management roles: Manager, Restaurant & Bar Manager, Housekeeping Supervisor, Finance, and Security Head can now clock in/out from their dashboards
+- Fixed Manager's Attendance Report columns to display name and username separately with proper labels
+
+**October 11, 2025 - Manager Role Enhancements:**
 - Added "Leave Requests" navigation option for managers to submit leave requests to owner
 - Leave requests follow the approval hierarchy: Manager → Owner
 
