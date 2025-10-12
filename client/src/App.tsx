@@ -71,6 +71,7 @@ import CashierDashboard from "@/pages/dashboard/cashier";
 import CashierTableBilling from "@/pages/dashboard/cashier/table-billing";
 import CashierMaintenance from "@/pages/dashboard/cashier/maintenance";
 import SecurityHeadDashboard from "@/pages/dashboard/security-head";
+import SecurityHeadStaffManagement from "@/pages/dashboard/security-head/staff-management";
 import SecurityHeadLeaveRequests from "@/pages/dashboard/security-head/leave-requests";
 import SecurityGuardDashboard from "@/pages/dashboard/security-guard";
 import SurveillanceOfficerDashboard from "@/pages/dashboard/surveillance-officer";
@@ -183,6 +184,7 @@ function Router() {
       <ProtectedRoute path="/cashier/table-billing" component={CashierTableBilling} allowedRoles={["cashier"]} />
       <ProtectedRoute path="/cashier/maintenance" component={CashierMaintenance} allowedRoles={["cashier"]} />
       <ProtectedRoute path="/security-head" component={SecurityHeadDashboard} allowedRoles={["security_head"]} />
+      <ProtectedRoute path="/security-head/staff-management" component={SecurityHeadStaffManagement} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/request-stock" component={RequestStock} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/leave-requests" component={SecurityHeadLeaveRequests} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/leave-approvals" component={ManagerLeaveApprovals} allowedRoles={["security_head"]} />

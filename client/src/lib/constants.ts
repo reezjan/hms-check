@@ -331,6 +331,7 @@ export const NAVIGATION_ITEMS = {
   ],
   [ROLES.SECURITY_HEAD]: [
     { icon: 'LayoutDashboard', label: 'Dashboard', id: 'dashboard' },
+    { icon: 'Users', label: 'Staff Management', id: 'staff' },
     { icon: 'Package', label: 'Request Stock', id: 'request-stock' },
     { icon: 'FileCheck', label: 'Leave Requests', id: 'leave' },
     { icon: 'CheckCircle', label: 'Leave Approvals', id: 'leave-approvals' }

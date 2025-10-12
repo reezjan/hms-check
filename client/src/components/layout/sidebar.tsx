@@ -85,6 +85,7 @@ export function Sidebar({ onItemClick }: SidebarProps = {}) {
       },
       'security_head': {
         'dashboard': '/security-head',
+        'staff': '/security-head/staff-management',
         'request-stock': '/security-head/request-stock',
         'leave': '/security-head/leave-requests',
         'leave-approvals': '/security-head/leave-approvals'
