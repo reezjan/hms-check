@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
@@ -8,17 +7,12 @@ import { cn } from "@/lib/utils";
 export function DutyToggle() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isOnDuty, setIsOnDuty] = useState(false);
 
   const { data: attendanceStatus } = useQuery<any>({
     queryKey: ["/api/attendance/status"]
   });
 
-  useEffect(() => {
-    if (attendanceStatus?.isOnDuty !== undefined) {
-      setIsOnDuty(attendanceStatus.isOnDuty);
-    }
-  }, [attendanceStatus]);
+  const isOnDuty = attendanceStatus?.isOnDuty ?? false;
 
   const updateDutyMutation = useMutation({
     mutationFn: async (shouldClockIn: boolean) => {
@@ -37,7 +31,6 @@ export function DutyToggle() {
       }
     },
     onSuccess: (_, shouldClockIn) => {
-      setIsOnDuty(shouldClockIn);
       queryClient.invalidateQueries({ queryKey: ["/api/attendance/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({

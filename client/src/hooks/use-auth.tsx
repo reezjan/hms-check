@@ -73,7 +73,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
+      // Clear user-specific queries to prevent cache persistence across logins
+      // Use type: "all" to remove both active and inactive queries
+      queryClient.removeQueries({ queryKey: ["/api/user"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/attendance/status"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/attendance/daily"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/hotels/current/attendance"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/hotels/current/users"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/hotels/current/transactions"], type: "all" });
+      queryClient.removeQueries({ queryKey: ["/api/hotels/current/vendors"], type: "all" });
     },
     onError: (error: Error) => {
       toast({
