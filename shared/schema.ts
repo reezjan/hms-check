@@ -362,6 +362,7 @@ export const restaurantTables = pgTable("restaurant_tables", {
   hotelId: uuid("hotel_id").references(() => hotels.id),
   name: text("name"),
   capacity: integer("capacity"),
+  location: text("location"),
   status: text("status").default('available'),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 });
