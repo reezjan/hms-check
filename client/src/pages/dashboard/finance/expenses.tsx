@@ -54,6 +54,8 @@ export default function FinanceExpensesPage() {
       category: "utilities",
       amount: "",
       paymentMethod: "cash",
+      chequeNumber: "",
+      bankName: "",
       description: ""
     }
   });
@@ -119,6 +121,22 @@ export default function FinanceExpensesPage() {
         throw new Error("Please enter a valid amount");
       }
 
+      // Validate cheque details if payment method is cheque
+      if (data.paymentMethod === "cheque") {
+        if (!data.chequeNumber || data.chequeNumber.trim() === "") {
+          throw new Error("Cheque number is required");
+        }
+        if (!data.bankName || data.bankName.trim() === "") {
+          throw new Error("Bank name is required for cheque payment");
+        }
+      }
+
+      const details: any = {};
+      if (data.paymentMethod === "cheque") {
+        details.chequeNumber = data.chequeNumber.trim();
+        details.bankName = data.bankName.trim();
+      }
+
       await apiRequest("POST", "/api/transactions", {
         hotelId: user?.hotelId,
         txnType: "cash_out",
@@ -126,6 +144,7 @@ export default function FinanceExpensesPage() {
         paymentMethod: data.paymentMethod,
         purpose: `${data.category} - ${data.description}`,
         reference: data.category,
+        details,
         createdBy: user?.id
       });
     },
@@ -443,6 +462,7 @@ export default function FinanceExpensesPage() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="cheque">Cheque</SelectItem>
                           <SelectItem value="pos">POS</SelectItem>
                           <SelectItem value="fonepay">Fonepay</SelectItem>
                         </SelectContent>
@@ -450,6 +470,36 @@ export default function FinanceExpensesPage() {
                     </FormItem>
                   )}
                 />
+
+                {expenseForm.watch("paymentMethod") === "cheque" && (
+                  <>
+                    <FormField
+                      control={expenseForm.control}
+                      name="chequeNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cheque Number *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter cheque number" data-testid="input-expense-cheque-number" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={expenseForm.control}
+                      name="bankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Which bank cheque issued from" data-testid="input-expense-cheque-bank" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <FormField
                   control={expenseForm.control}

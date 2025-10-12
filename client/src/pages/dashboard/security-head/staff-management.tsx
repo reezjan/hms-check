@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, UserPlus, Shield } from "lucide-react";
+import { Users, UserPlus, Shield, Eye } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
 
@@ -20,7 +21,8 @@ export default function SecurityHeadStaffManagement() {
     phone: "",
     fullName: "",
     address: "",
-    password: ""
+    password: "",
+    role: "surveillance_officer"
   });
 
   const queryClient = useQueryClient();
@@ -31,9 +33,9 @@ export default function SecurityHeadStaffManagement() {
     refetchInterval: 3000
   });
 
-  // Filter for security guards only
-  const securityGuards = allStaff.filter(staff => 
-    staff.role?.name === 'security_guard'
+  // Filter for security staff (guards and surveillance officers)
+  const securityStaff = allStaff.filter(staff => 
+    staff.role?.name === 'security_guard' || staff.role?.name === 'surveillance_officer'
   );
 
   const { data: dailyAttendance = [] } = useQuery<any[]>({
@@ -50,21 +52,20 @@ export default function SecurityHeadStaffManagement() {
         credentials: "include",
         body: JSON.stringify({
           ...staffData,
-          role: "security_guard",
           confirmPassword: staffData.password
         })
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create security guard");
+        throw new Error(errorData.message || "Failed to create security staff");
       }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/users"] });
       setIsAddDialogOpen(false);
-      setNewStaff({ username: "", email: "", phone: "", fullName: "", address: "", password: "" });
-      toast.success("Security guard created successfully");
+      setNewStaff({ username: "", email: "", phone: "", fullName: "", address: "", password: "", role: "surveillance_officer" });
+      toast.success("Security staff created successfully");
     },
     onError: (error: any) => {
       toast.error(error.message);
@@ -72,8 +73,8 @@ export default function SecurityHeadStaffManagement() {
   });
 
   const handleAddStaff = () => {
-    if (!newStaff.username || !newStaff.email || !newStaff.password || !newStaff.phone || !newStaff.fullName || !newStaff.address) {
-      toast.error("Please fill in all required fields (username, email, password, phone, full name, and address)");
+    if (!newStaff.username || !newStaff.email || !newStaff.password || !newStaff.phone || !newStaff.fullName || !newStaff.address || !newStaff.role) {
+      toast.error("Please fill in all required fields (username, email, password, phone, full name, address, and role)");
       return;
     }
 
@@ -82,7 +83,7 @@ export default function SecurityHeadStaffManagement() {
 
   const handleDeleteStaff = async (staff: any) => {
     await confirm({
-      title: "Remove Security Guard",
+      title: "Remove Security Staff",
       description: `Are you sure you want to remove ${staff.fullName || staff.username}?`,
       confirmText: "Remove",
       cancelText: "Cancel",
@@ -94,10 +95,10 @@ export default function SecurityHeadStaffManagement() {
             credentials: "include"
           });
           if (!response.ok) {
-            throw new Error("Failed to delete security guard");
+            throw new Error("Failed to delete security staff");
           }
           queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/users"] });
-          toast.success("Security guard removed successfully");
+          toast.success("Security staff removed successfully");
         } catch (error: any) {
           toast.error(error.message);
         }
@@ -117,6 +118,18 @@ export default function SecurityHeadStaffManagement() {
         }
         return row.username || '-';
       }
+    },
+    { 
+      key: "role", 
+      label: "Role", 
+      sortable: true,
+      render: (value: any) => (
+        <div className="flex items-center space-x-2">
+          {value?.name === 'security_guard' && <Shield className="h-4 w-4 text-blue-500" />}
+          {value?.name === 'surveillance_officer' && <Eye className="h-4 w-4 text-purple-500" />}
+          <span>{value?.name?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+        </div>
+      )
     },
     { key: "email", label: "Email", sortable: true },
     { key: "phone", label: "Phone", sortable: true },
@@ -155,16 +168,16 @@ export default function SecurityHeadStaffManagement() {
   ];
 
   return (
-    <DashboardLayout title="Security Guard Management">
+    <DashboardLayout title="Security Staff Management">
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Guards</p>
-                  <p className="text-2xl font-bold">{securityGuards.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Staff</p>
+                  <p className="text-2xl font-bold">{securityStaff.length}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500" />
               </div>
@@ -176,7 +189,7 @@ export default function SecurityHeadStaffManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">On Duty</p>
-                  <p className="text-2xl font-bold">{securityGuards.filter(s => dailyAttendance.some(a => a.userId === s.id && a.status === 'active')).length}</p>
+                  <p className="text-2xl font-bold">{securityStaff.filter(s => dailyAttendance.some(a => a.userId === s.id && a.status === 'active')).length}</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                   <div className="h-4 w-4 rounded-full bg-green-500" />
@@ -189,12 +202,26 @@ export default function SecurityHeadStaffManagement() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Off Duty</p>
+                  <p className="text-sm font-medium text-muted-foreground">Security Guards</p>
                   <p className="text-2xl font-bold">
-                    {securityGuards.filter(s => !dailyAttendance.some(a => a.userId === s.id && a.status === 'active')).length}
+                    {securityStaff.filter(s => s.role?.name === 'security_guard').length}
                   </p>
                 </div>
-                <Shield className="h-8 w-8 text-gray-500" />
+                <Shield className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Surveillance Officers</p>
+                  <p className="text-2xl font-bold">
+                    {securityStaff.filter(s => s.role?.name === 'surveillance_officer').length}
+                  </p>
+                </div>
+                <Eye className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -202,21 +229,21 @@ export default function SecurityHeadStaffManagement() {
 
         {/* Staff Table */}
         <DataTable
-          title="Security Guards"
-          data={securityGuards}
+          title="Security Staff"
+          data={securityStaff}
           columns={columns}
           actions={actions}
           isLoading={isLoading}
           onAdd={() => setIsAddDialogOpen(true)}
-          addButtonLabel="Add Security Guard"
-          searchPlaceholder="Search security guards..."
+          addButtonLabel="Add Security Staff"
+          searchPlaceholder="Search security staff..."
         />
 
         {/* Add Staff Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Security Guard</DialogTitle>
+              <DialogTitle>Add Security Staff</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -274,6 +301,19 @@ export default function SecurityHeadStaffManagement() {
               </div>
               
               <div>
+                <Label htmlFor="role">Role *</Label>
+                <Select value={newStaff.role} onValueChange={(value) => setNewStaff({ ...newStaff, role: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="surveillance_officer">Surveillance Officer</SelectItem>
+                    <SelectItem value="security_guard">Security Guard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
                 <Label htmlFor="password">Password *</Label>
                 <Input
                   id="password"
@@ -292,7 +332,7 @@ export default function SecurityHeadStaffManagement() {
                   onClick={handleAddStaff}
                   disabled={createStaffMutation.isPending}
                 >
-                  {createStaffMutation.isPending ? "Creating..." : "Create Guard"}
+                  {createStaffMutation.isPending ? "Creating..." : "Create Staff"}
                 </Button>
               </div>
             </div>

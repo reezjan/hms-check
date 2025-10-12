@@ -132,6 +132,12 @@ export default function RestaurantStaffManagement() {
       sortable: true
     },
     { 
+      key: "address", 
+      label: "Address", 
+      sortable: true,
+      render: (value: any) => value || '-'
+    },
+    { 
       key: "role", 
       label: "Role", 
       sortable: true,

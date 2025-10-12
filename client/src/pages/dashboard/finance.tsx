@@ -29,6 +29,8 @@ export default function FinanceDashboard() {
 
   const [isBankDepositModalOpen, setIsBankDepositModalOpen] = useState(false);
   const [isVendorPaymentModalOpen, setIsVendorPaymentModalOpen] = useState(false);
+  const [isAddVendorModalOpen, setIsAddVendorModalOpen] = useState(false);
+  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
 
   const bankDepositForm = useForm({
@@ -47,6 +49,26 @@ export default function FinanceDashboard() {
       chequeNumber: "",
       bankName: "",
       notes: ""
+    }
+  });
+
+  const addVendorForm = useForm({
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      address: ""
+    }
+  });
+
+  const addExpenseForm = useForm({
+    defaultValues: {
+      category: "utilities",
+      amount: "",
+      paymentMethod: "cash",
+      chequeNumber: "",
+      bankName: "",
+      description: ""
     }
   });
 
@@ -234,6 +256,87 @@ export default function FinanceDashboard() {
       toast({ 
         title: "Error", 
         description: error.message || "Failed to process vendor payment", 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const addVendorMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (!data.name || data.name.trim() === "") {
+        throw new Error("Vendor name is required");
+      }
+
+      const contact: any = {};
+      if (data.phone) contact.phone = data.phone.trim();
+      if (data.email) contact.email = data.email.trim();
+      if (data.address) contact.address = data.address.trim();
+
+      await apiRequest("POST", "/api/hotels/current/vendors", {
+        hotelId: user?.hotelId,
+        name: data.name.trim(),
+        contact
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/vendors"] });
+      toast({ title: "Success", description: "Vendor added successfully" });
+      addVendorForm.reset();
+      setIsAddVendorModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add vendor", 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const addExpenseMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const amount = parseFloat(data.amount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error("Please enter a valid amount");
+      }
+
+      // Validate cheque details if payment method is cheque
+      if (data.paymentMethod === "cheque") {
+        if (!data.chequeNumber || data.chequeNumber.trim() === "") {
+          throw new Error("Cheque number is required");
+        }
+        if (!data.bankName || data.bankName.trim() === "") {
+          throw new Error("Bank name is required for cheque payment");
+        }
+      }
+
+      const details: any = {};
+      if (data.paymentMethod === "cheque") {
+        details.chequeNumber = data.chequeNumber.trim();
+        details.bankName = data.bankName.trim();
+      }
+
+      await apiRequest("POST", "/api/transactions", {
+        hotelId: user?.hotelId,
+        txnType: "cash_out",
+        amount: amount.toFixed(2),
+        paymentMethod: data.paymentMethod,
+        purpose: `${data.category} - ${data.description}`,
+        reference: data.category,
+        details,
+        createdBy: user?.id
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/transactions"] });
+      toast({ title: "Success", description: "Expense recorded successfully" });
+      addExpenseForm.reset();
+      setIsAddExpenseModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to record expense", 
         variant: "destructive" 
       });
     }
@@ -587,7 +690,7 @@ export default function FinanceDashboard() {
           data={expenses}
           columns={expenseColumns}
           actions={expenseActions}
-          onAdd={() => console.log("Add expense")}
+          onAdd={() => setIsAddExpenseModalOpen(true)}
           addButtonLabel="Add Expense"
           searchPlaceholder="Search expenses..."
         />
@@ -598,7 +701,7 @@ export default function FinanceDashboard() {
           data={vendors}
           columns={vendorColumns}
           actions={vendorActions}
-          onAdd={() => console.log("Add vendor")}
+          onAdd={() => setIsAddVendorModalOpen(true)}
           addButtonLabel="Add Vendor"
           searchPlaceholder="Search vendors..."
         />
@@ -942,6 +1045,230 @@ export default function FinanceDashboard() {
                       setSelectedVendor(null);
                     }}
                     data-testid="button-cancel-vendor-payment"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Vendor Modal */}
+        <Dialog open={isAddVendorModalOpen} onOpenChange={setIsAddVendorModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Vendor</DialogTitle>
+            </DialogHeader>
+            
+            <Form {...addVendorForm}>
+              <form onSubmit={addVendorForm.handleSubmit((data) => addVendorMutation.mutate(data))} className="space-y-4">
+                <FormField
+                  control={addVendorForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vendor Name *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter vendor name" data-testid="input-vendor-name" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={addVendorForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter phone number" data-testid="input-vendor-phone" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={addVendorForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="Enter email address" data-testid="input-vendor-email" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={addVendorForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} placeholder="Enter address" rows={2} data-testid="textarea-vendor-address" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex space-x-3">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={addVendorMutation.isPending}
+                    data-testid="button-submit-add-vendor"
+                  >
+                    {addVendorMutation.isPending ? "Adding..." : "Add Vendor"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => setIsAddVendorModalOpen(false)}
+                    data-testid="button-cancel-add-vendor"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Expense Modal */}
+        <Dialog open={isAddExpenseModalOpen} onOpenChange={setIsAddExpenseModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Expense</DialogTitle>
+            </DialogHeader>
+            
+            <Form {...addExpenseForm}>
+              <form onSubmit={addExpenseForm.handleSubmit((data) => addExpenseMutation.mutate(data))} className="space-y-4">
+                <FormField
+                  control={addExpenseForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-expense-category">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="utilities">Utilities</SelectItem>
+                          <SelectItem value="maintenance">Maintenance</SelectItem>
+                          <SelectItem value="supplies">Supplies</SelectItem>
+                          <SelectItem value="salaries">Salaries</SelectItem>
+                          <SelectItem value="rent">Rent</SelectItem>
+                          <SelectItem value="insurance">Insurance</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={addExpenseForm.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount *</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="number" step="0.01" placeholder="0.00" data-testid="input-expense-amount" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={addExpenseForm.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-expense-payment-method">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="cash">Cash</SelectItem>
+                          <SelectItem value="cheque">Cheque</SelectItem>
+                          <SelectItem value="pos">POS</SelectItem>
+                          <SelectItem value="fonepay">Fonepay</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                
+                {addExpenseForm.watch("paymentMethod") === "cheque" && (
+                  <>
+                    <FormField
+                      control={addExpenseForm.control}
+                      name="chequeNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cheque Number *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter cheque number" data-testid="input-expense-cheque-number" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={addExpenseForm.control}
+                      name="bankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name *</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Which bank cheque issued from" data-testid="input-expense-cheque-bank" />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                
+                <FormField
+                  control={addExpenseForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description *</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} placeholder="Expense description" rows={3} data-testid="textarea-expense-description" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex space-x-3">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={addExpenseMutation.isPending}
+                    data-testid="button-submit-add-expense"
+                  >
+                    {addExpenseMutation.isPending ? "Recording..." : "Record Expense"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => setIsAddExpenseModalOpen(false)}
+                    data-testid="button-cancel-add-expense"
                   >
                     Cancel
                   </Button>
