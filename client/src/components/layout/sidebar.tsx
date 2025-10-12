@@ -38,6 +38,7 @@ export function Sidebar({ onItemClick }: SidebarProps = {}) {
         'vouchers': '/owner/vouchers',
         'taxes': '/owner/taxes',
         'staff': '/owner/staff',
+        'attendance': '/owner/attendance',
         'leave-policies': '/owner/leave-policies',
         'leave-approvals': '/owner/leave-approvals',
         'report': '/owner/report',
@@ -86,6 +87,7 @@ export function Sidebar({ onItemClick }: SidebarProps = {}) {
       'security_head': {
         'dashboard': '/security-head',
         'staff': '/security-head/staff-management',
+        'vehicles': '/security-head/vehicles',
         'request-stock': '/security-head/request-stock',
         'leave': '/security-head/leave-requests',
         'leave-approvals': '/security-head/leave-approvals'

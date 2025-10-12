@@ -59,14 +59,19 @@ export const ROLE_DASHBOARDS = {
 } as const;
 
 export const DUTY_ROLES = [
+  ROLES.MANAGER,
+  ROLES.RESTAURANT_BAR_MANAGER,
+  ROLES.HOUSEKEEPING_SUPERVISOR,
   ROLES.HOUSEKEEPING_STAFF,
   ROLES.WAITER,
   ROLES.KITCHEN_STAFF,
   ROLES.BARTENDER,
   ROLES.BARISTA,
   ROLES.CASHIER,
+  ROLES.SECURITY_HEAD,
   ROLES.SECURITY_GUARD,
   ROLES.SURVEILLANCE_OFFICER,
+  ROLES.FINANCE,
   ROLES.FRONT_DESK,
   ROLES.STOREKEEPER
 ];
@@ -233,6 +238,7 @@ export const NAVIGATION_ITEMS = {
     { icon: 'Tag', label: 'Discount Vouchers', id: 'vouchers' },
     { icon: 'Calculator', label: 'Tax Configuration', id: 'taxes' },
     { icon: 'UserCog', label: 'Staff Management', id: 'staff' },
+    { icon: 'ClipboardCheck', label: 'Attendance Reports', id: 'attendance' },
     { icon: 'Settings', label: 'Leave Policies', id: 'leave-policies' },
     { icon: 'FileCheck', label: 'Leave Approvals', id: 'leave-approvals' },
     { icon: 'FileText', label: 'Report', id: 'report' },
@@ -332,6 +338,7 @@ export const NAVIGATION_ITEMS = {
   [ROLES.SECURITY_HEAD]: [
     { icon: 'LayoutDashboard', label: 'Dashboard', id: 'dashboard' },
     { icon: 'Users', label: 'Staff Management', id: 'staff' },
+    { icon: 'Car', label: 'Vehicle Logs', id: 'vehicles' },
     { icon: 'Package', label: 'Request Stock', id: 'request-stock' },
     { icon: 'FileCheck', label: 'Leave Requests', id: 'leave' },
     { icon: 'CheckCircle', label: 'Leave Approvals', id: 'leave-approvals' }

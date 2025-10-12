@@ -15,6 +15,7 @@ import OwnerInventoryTracking from "@/pages/dashboard/owner/inventory-tracking";
 import OwnerRoomOccupancy from "@/pages/dashboard/owner/room-occupancy";
 import OwnerTaxConfiguration from "@/pages/dashboard/owner/tax-configuration";
 import OwnerStaffManagement from "@/pages/dashboard/owner/staff-management";
+import OwnerAttendanceReports from "@/pages/dashboard/owner/attendance-reports";
 import OwnerLeavePolicies from "@/pages/dashboard/owner/leave-policies";
 import OwnerReports from "@/pages/dashboard/owner/reports";
 import OwnerReport from "@/pages/dashboard/owner/report";
@@ -73,6 +74,7 @@ import CashierMaintenance from "@/pages/dashboard/cashier/maintenance";
 import SecurityHeadDashboard from "@/pages/dashboard/security-head";
 import SecurityHeadStaffManagement from "@/pages/dashboard/security-head/staff-management";
 import SecurityHeadLeaveRequests from "@/pages/dashboard/security-head/leave-requests";
+import SecurityHeadVehicleLogs from "@/pages/dashboard/security-head/vehicle-logs";
 import SecurityGuardDashboard from "@/pages/dashboard/security-guard";
 import SurveillanceOfficerDashboard from "@/pages/dashboard/surveillance-officer";
 import SurveillanceOfficerDutyStatus from "@/pages/dashboard/surveillance-officer/duty-status";
@@ -117,6 +119,7 @@ function Router() {
       <ProtectedRoute path="/owner/occupancy" component={OwnerRoomOccupancy} allowedRoles={["owner"]} />
       <ProtectedRoute path="/owner/taxes" component={OwnerTaxConfiguration} allowedRoles={["owner"]} />
       <ProtectedRoute path="/owner/staff" component={OwnerStaffManagement} allowedRoles={["owner"]} />
+      <ProtectedRoute path="/owner/attendance" component={OwnerAttendanceReports} allowedRoles={["owner"]} />
       <ProtectedRoute path="/owner/leave-policies" component={OwnerLeavePolicies} allowedRoles={["owner"]} />
       <ProtectedRoute path="/owner/leave-approvals" component={ManagerLeaveApprovals} allowedRoles={["owner"]} />
       <ProtectedRoute path="/owner/report" component={OwnerReport} allowedRoles={["owner"]} />
@@ -185,6 +188,7 @@ function Router() {
       <ProtectedRoute path="/cashier/maintenance" component={CashierMaintenance} allowedRoles={["cashier"]} />
       <ProtectedRoute path="/security-head" component={SecurityHeadDashboard} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/staff-management" component={SecurityHeadStaffManagement} allowedRoles={["security_head"]} />
+      <ProtectedRoute path="/security-head/vehicles" component={SecurityHeadVehicleLogs} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/request-stock" component={RequestStock} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/leave-requests" component={SecurityHeadLeaveRequests} allowedRoles={["security_head"]} />
       <ProtectedRoute path="/security-head/leave-approvals" component={ManagerLeaveApprovals} allowedRoles={["security_head"]} />
