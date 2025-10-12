@@ -66,32 +66,31 @@ export default function VendorPayments() {
       const response = await fetch("/api/user", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch user");
       return response.json();
-    },
-    refetchInterval: 3000
+    }
   });
 
   // Fetch vendors for this hotel
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/hotels/current/vendors"],
+    enabled: !!currentUser?.hotelId,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/vendors", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch vendors");
       return response.json();
-    },
-    refetchInterval: 3000
+    }
   });
 
   // Fetch vendor payments (transactions with vendorId)
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/hotels/current/transactions"],
+    enabled: !!currentUser?.hotelId,
     queryFn: async () => {
       const response = await fetch("/api/hotels/current/transactions", { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch transactions");
       const allTransactions = await response.json();
       // Filter to only vendor payments
       return allTransactions.filter((t: Transaction) => t.vendorId && t.txnType === "vendor_payment");
-    },
-    refetchInterval: 3000
+    }
   });
 
   // Create payment mutation

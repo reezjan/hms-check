@@ -58,6 +58,12 @@ export default function AttendanceReports() {
 
   const columns = [
     { 
+      key: "clockInTime", 
+      label: "Date", 
+      sortable: true,
+      render: (value: any) => value ? format(parseISO(value), 'MMM dd, yyyy') : "N/A"
+    },
+    { 
       key: "fullName", 
       label: "Name", 
       sortable: true,
