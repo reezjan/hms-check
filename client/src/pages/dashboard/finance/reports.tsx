@@ -8,6 +8,7 @@ import { Download, FileText, TrendingUp, DollarSign, PieChart, ArrowUpRight, Arr
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 import { 
   LineChart, Line, BarChart, Bar, PieChart as RechartsPie, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
@@ -22,6 +23,12 @@ export default function FinanceReportsPage() {
   const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/transactions"],
     enabled: !!user?.hotelId
+  });
+
+  // Real-time updates for transactions
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/transactions"],
+    events: ['transaction:created', 'transaction:updated']
   });
 
   const revenueTransactions = transactions.filter(t => 
@@ -121,8 +128,97 @@ export default function FinanceReportsPage() {
 
   const COLORS = ['#3b82f6', '#f97316', '#a855f7', '#10b981', '#ef4444', '#eab308', '#64748b'];
 
+  const downloadCSV = (csvContent: string, filename: string) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportReport = () => {
-    toast({ title: "Report generated and downloaded successfully" });
+    const timestamp = new Date().toISOString().split('T')[0];
+    let csv = '';
+
+    if (reportType === 'profit_loss') {
+      csv = `Profit & Loss Statement - ${period}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += `SUMMARY\n`;
+      csv += `Total Revenue,${totalRevenue}\n`;
+      csv += `Total Expenses,${totalExpenses}\n`;
+      csv += `Net Profit,${netProfit}\n`;
+      csv += `Profit Margin,${profitMargin.toFixed(2)}%\n\n`;
+      
+      csv += `REVENUE BREAKDOWN\n`;
+      csv += `Category,Amount\n`;
+      departmentData.forEach(dept => {
+        csv += `${dept.name},${dept.value}\n`;
+      });
+      
+      csv += `\nEXPENSE BREAKDOWN\n`;
+      csv += `Category,Amount\n`;
+      expenseBreakdownData.forEach(exp => {
+        csv += `${exp.name},${exp.value}\n`;
+      });
+      
+      downloadCSV(csv, `profit_loss_${timestamp}.csv`);
+    } else if (reportType === 'cash_flow') {
+      csv = `Cash Flow Statement - ${period}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += `Total Cash In,${totalRevenue}\n`;
+      csv += `Total Cash Out,${totalExpenses}\n`;
+      csv += `Net Cash Flow,${netProfit}\n\n`;
+      
+      csv += `7-DAY TREND\n`;
+      csv += `Date,Revenue,Expenses,Profit\n`;
+      trendData.forEach(day => {
+        csv += `${day.date},${day.revenue},${day.expenses},${day.profit}\n`;
+      });
+      
+      downloadCSV(csv, `cash_flow_${timestamp}.csv`);
+    } else if (reportType === 'revenue_breakdown') {
+      csv = `Revenue Breakdown - ${period}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += `Total Revenue,${totalRevenue}\n\n`;
+      
+      csv += `Department,Amount,Percentage\n`;
+      departmentData.forEach(dept => {
+        const percentage = totalRevenue > 0 ? (dept.value / totalRevenue) * 100 : 0;
+        csv += `${dept.name},${dept.value},${percentage.toFixed(2)}%\n`;
+      });
+      
+      downloadCSV(csv, `revenue_breakdown_${timestamp}.csv`);
+    } else if (reportType === 'expense_breakdown') {
+      csv = `Expense Breakdown - ${period}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += `Total Expenses,${totalExpenses}\n\n`;
+      
+      csv += `Category,Amount,Percentage\n`;
+      expenseBreakdownData.forEach(exp => {
+        const percentage = totalExpenses > 0 ? (exp.value / totalExpenses) * 100 : 0;
+        csv += `${exp.name},${exp.value},${percentage.toFixed(2)}%\n`;
+      });
+      
+      downloadCSV(csv, `expense_breakdown_${timestamp}.csv`);
+    } else if (reportType === 'balance_sheet') {
+      csv = `Balance Sheet - ${period}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += `ASSETS\n`;
+      csv += `Total Revenue,${totalRevenue}\n\n`;
+      csv += `LIABILITIES\n`;
+      csv += `Total Expenses,${totalExpenses}\n\n`;
+      csv += `EQUITY\n`;
+      csv += `Net Worth,${netProfit}\n`;
+      
+      downloadCSV(csv, `balance_sheet_${timestamp}.csv`);
+    }
+
+    toast({ title: "Report exported successfully", description: `${reportType.replace('_', ' ')} report downloaded as CSV` });
   };
 
   return (

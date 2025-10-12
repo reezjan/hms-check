@@ -61,6 +61,18 @@ export default function FinanceDashboard() {
     events: ['transaction:created', 'transaction:updated']
   });
 
+  // Listen for real-time user updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/users"],
+    events: ['user:created', 'user:updated']
+  });
+
+  // Listen for real-time maintenance updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/maintenance-requests"],
+    events: ['maintenance:updated', 'maintenance:created']
+  });
+
   const { data: maintenanceRequests = [], isLoading: maintenanceLoading } = useQuery<MaintenanceRequest[]>({
     queryKey: ["/api/hotels/current/maintenance-requests"],
     enabled: !!user?.hotelId
@@ -68,6 +80,11 @@ export default function FinanceDashboard() {
 
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery<Vendor[]>({
     queryKey: ["/api/hotels/current/vendors"],
+    enabled: !!user?.hotelId
+  });
+
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ["/api/hotels/current/users"],
     enabled: !!user?.hotelId
   });
 
@@ -279,11 +296,13 @@ export default function FinanceDashboard() {
     { key: "description", label: "Request", sortable: true },
     { key: "department", label: "Department", sortable: true },
     { 
-      key: "raisedBy", 
+      key: "reportedBy", 
       label: "Raised By", 
       render: (value: any, row: any) => {
-        // In a real app, this would lookup the user by ID
-        return row.raisedBy || "Unknown";
+        const userId = row.reportedBy || row.raisedBy;
+        if (!userId) return "Unknown";
+        const reportedUser = users.find((u: any) => u.id === userId);
+        return reportedUser?.username || reportedUser?.fullName || "Unknown";
       }
     },
     { key: "status", label: "Status", sortable: true },
@@ -387,12 +406,6 @@ export default function FinanceDashboard() {
     { key: "amount", label: "Amount", sortable: true, render: (value: number) => formatCurrency(value) },
     { key: "paymentMethod", label: "Payment Method", sortable: true },
     { key: "createdAt", label: "Date", sortable: true }
-  ];
-
-  const maintenanceActions = [
-    { label: "Approve", action: (row: any) => console.log("Approve maintenance:", row) },
-    { label: "Assign Budget", action: (row: any) => console.log("Assign budget:", row) },
-    { label: "View Details", action: (row: any) => console.log("View details:", row) }
   ];
 
   const vendorActions = [
@@ -557,58 +570,11 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Finance Operations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" 
-                onClick={() => setIsBankDepositModalOpen(true)}
-                data-testid="button-bank-deposit"
-              >
-                <Landmark className="h-6 w-6" />
-                <span className="text-sm">Deposit to Bank</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" 
-                onClick={() => setIsVendorPaymentModalOpen(true)}
-                data-testid="button-vendor-payment"
-              >
-                <CreditCard className="h-6 w-6" />
-                <span className="text-sm">Vendor Payment</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" 
-                onClick={() => setLocation("/hall-bookings")}
-                data-testid="button-hall-bookings"
-              >
-                <Building2 className="h-6 w-6" />
-                <span className="text-sm">Hall Bookings</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" data-testid="button-expense-report">
-                <Receipt className="h-6 w-6" />
-                <span className="text-sm">Expense Report</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" data-testid="button-financial-report">
-                <TrendingUp className="h-6 w-6" />
-                <span className="text-sm">Financial Report</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Maintenance Requests */}
         <DataTable
           title="Maintenance Requests from Departments"
           data={maintenanceRequests}
           columns={maintenanceColumns}
-          actions={maintenanceActions}
           searchPlaceholder="Search maintenance requests..."
         />
 

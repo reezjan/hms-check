@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon, FileText, DollarSign, Package, Users, Settings, History, TrendingUp, ArrowLeft } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function AuditTransparencyPage() {
   const [, setLocation] = useLocation();
@@ -20,14 +21,23 @@ export default function AuditTransparencyPage() {
 
   // Financial Activity - Use financial overview logic (real-time)
   const { data: transactions = [] } = useQuery<any[]>({
-    queryKey: ["/api/hotels/current/transactions"],
-    refetchInterval: 3000
+    queryKey: ["/api/hotels/current/transactions"]
   });
 
   // Maintenance Approvals - Use maintenance requests logic (real-time)
   const { data: maintenanceRequests = [] } = useQuery<any[]>({
+    queryKey: ["/api/hotels/current/maintenance-requests"]
+  });
+
+  // Real-time updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/transactions"],
+    events: ['transaction:created', 'transaction:updated']
+  });
+
+  useRealtimeQuery({
     queryKey: ["/api/hotels/current/maintenance-requests"],
-    refetchInterval: 5000
+    events: ['maintenance:updated']
   });
 
   // Filter transactions by date if range is selected

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Calculator, Save, Settings } from "lucide-react";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 interface TaxSetting {
   id?: string;
@@ -26,6 +27,12 @@ export default function TaxConfiguration() {
 
   const { data: hotel } = useQuery<any>({
     queryKey: ["/api/hotels/current"]
+  });
+
+  // Real-time updates for tax configuration changes
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/taxes"],
+    events: ['tax:updated', 'tax:created']
   });
 
   // Initialize tax settings with default values

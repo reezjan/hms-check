@@ -10,6 +10,7 @@ import { Plus, Pencil, Trash2, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useConfirmDialog } from "@/hooks/use-confirm-dialog";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 interface LeavePolicy {
   id: string;
@@ -40,6 +41,12 @@ export default function LeavePoliciesPage() {
 
   const { data: policies = [], isLoading } = useQuery<LeavePolicy[]>({
     queryKey: ["/api/hotels/current/leave-policies"]
+  });
+
+  // Real-time updates for leave policy changes
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/leave-policies"],
+    events: ['leave-policy:created', 'leave-policy:updated', 'leave-policy:deleted']
   });
 
   const createMutation = useMutation({

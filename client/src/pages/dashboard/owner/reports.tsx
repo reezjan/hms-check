@@ -10,6 +10,7 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { BarChart, FileText, Download, TrendingUp, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 
 export default function Reports() {
   const { toast } = useToast();
@@ -42,6 +43,32 @@ export default function Reports() {
 
   const { data: vendors = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/vendors"]
+  });
+
+  // Real-time updates
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/transactions"],
+    events: ['transaction:created', 'transaction:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/rooms"],
+    events: ['room:updated', 'room:created']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/users"],
+    events: ['user:created', 'user:updated']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/hotels/current/inventory-items"],
+    events: ['inventory:created', 'inventory:updated', 'inventory:deleted']
+  });
+
+  useRealtimeQuery({
+    queryKey: ["/api/attendance/daily"],
+    events: ['attendance:updated']
   });
 
   const filteredTransactions = transactions.filter(t => {
