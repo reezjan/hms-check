@@ -136,7 +136,9 @@ export default function HousekeepingSupervisorStaffManagement() {
   };
 
   const staffColumns = [
-    { key: "username", label: "Name", sortable: true },
+    { key: "fullName", label: "Name", sortable: true },
+    { key: "username", label: "Username", sortable: true },
+    { key: "address", label: "Address", sortable: true },
     { key: "phone", label: "Phone", sortable: true },
     { key: "email", label: "Email", sortable: true },
     { 

@@ -299,10 +299,10 @@ export default function FinanceDashboard() {
       key: "reportedBy", 
       label: "Raised By", 
       render: (value: any, row: any) => {
-        const userId = row.reportedBy || row.raisedBy;
-        if (!userId) return "Unknown";
-        const reportedUser = users.find((u: any) => u.id === userId);
-        return reportedUser?.username || reportedUser?.fullName || "Unknown";
+        if (typeof value === 'object' && value?.username) {
+          return value.username;
+        }
+        return "Unknown";
       }
     },
     { key: "status", label: "Status", sortable: true },
@@ -416,15 +416,10 @@ export default function FinanceDashboard() {
         vendorPaymentForm.setValue("vendorId", row.id);
         setIsVendorPaymentModalOpen(true);
       }
-    },
-    { label: "View History", action: (row: any) => console.log("View payment history:", row) },
-    { label: "Edit", action: (row: any) => console.log("Edit vendor:", row) }
+    }
   ];
 
-  const expenseActions = [
-    { label: "View Receipt", action: (row: any) => console.log("View receipt:", row) },
-    { label: "Edit", action: (row: any) => console.log("Edit expense:", row) }
-  ];
+  const expenseActions: any[] = [];
 
   // Filter expenses (cash_out transactions)
   const expenses = transactions.filter(t => t.txnType === 'cash_out' || t.txnType === 'vendor_payment');

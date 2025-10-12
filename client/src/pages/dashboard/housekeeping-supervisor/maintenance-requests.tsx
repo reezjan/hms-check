@@ -82,15 +82,21 @@ export default function HousekeepingSupervisorMaintenanceRequests() {
   const actions = [
     {
       label: "Declined",
-      action: (row: any) => handleDecline(row)
+      action: (row: any) => handleDecline(row),
+      // Only show if status is pending or fixing (not approved or resolved)
+      show: (row: any) => row.status !== "approved" && row.status !== "resolved" && row.status !== "declined"
     },
     {
       label: "Fixing",
-      action: (row: any) => handleFixing(row)
+      action: (row: any) => handleFixing(row),
+      // Only show if status is pending or approved (not resolved)
+      show: (row: any) => row.status !== "resolved" && row.status !== "fixing" && row.status !== "declined"
     },
     {
       label: "Resolved",
-      action: (row: any) => handleResolve(row)
+      action: (row: any) => handleResolve(row),
+      // Only show if status is approved or fixing (not already resolved or declined)
+      show: (row: any) => (row.status === "approved" || row.status === "fixing") && row.status !== "resolved"
     }
   ];
 

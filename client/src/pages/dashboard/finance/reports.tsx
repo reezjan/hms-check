@@ -255,7 +255,7 @@ export default function FinanceReportsPage() {
                 </Select>
                 <Button onClick={handleExportReport}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export PDF
+                  Export
                 </Button>
               </div>
             </div>

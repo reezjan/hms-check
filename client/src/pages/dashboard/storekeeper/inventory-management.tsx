@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Plus, TrendingUp, ArrowRightLeft, History, AlertTriangle } from "lucide-react";
+import { Package, Plus, TrendingUp, ArrowRightLeft, History, AlertTriangle, Edit } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,12 +23,14 @@ export default function StorekeeperInventoryManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [isEditItemModalOpen, setIsEditItemModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isReceiveStockModalOpen, setIsReceiveStockModalOpen] = useState(false);
   const [isIssueStockModalOpen, setIsIssueStockModalOpen] = useState(false);
   const [receiveStockMode, setReceiveStockMode] = useState<'package' | 'base'>('package');
   const [issueStockMode, setIssueStockMode] = useState<'package' | 'base'>('base');
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
   const { data: allInventoryItems = [] } = useQuery<any[]>({
     queryKey: ["/api/hotels/current/inventory-items"],
@@ -78,6 +80,22 @@ export default function StorekeeperInventoryManagement() {
     }
   });
 
+  const editItemForm = useForm({
+    defaultValues: {
+      name: "",
+      description: "",
+      sku: "",
+      baseUnit: "piece",
+      packageUnit: "",
+      baseUnitsPerPackage: 0,
+      reorderLevel: 0,
+      storageLocation: "",
+      costPerUnit: 0,
+      expiryDate: "",
+      hasExpiry: false
+    }
+  });
+
   const receiveStockForm = useForm({
     defaultValues: {
       qtyPackage: 0,
@@ -100,6 +118,10 @@ export default function StorekeeperInventoryManagement() {
 
   const createItemMutation = useMutation({
     mutationFn: async (data: any) => {
+      if (selectedDepartments.length === 0) {
+        throw new Error("Please select at least one department");
+      }
+      
       const baseUnitsPerPackage = data.packageUnit ? parseFloat(data.baseUnitsPerPackage) || 0 : 0;
       // Auto-generate SKU if not provided
       const sku = data.sku.trim() || `SKU-${Date.now()}`;
@@ -118,14 +140,61 @@ export default function StorekeeperInventoryManagement() {
         reorderLevel: data.reorderLevel.toString(),
         storageLocation: data.storageLocation || "",
         costPerUnit: data.costPerUnit.toString(),
-        departments: data.department === "all" ? ["all"] : [data.department]
+        departments: selectedDepartments
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/inventory-items"] });
       toast({ title: "Inventory item created successfully" });
       addItemForm.reset();
+      setSelectedDepartments([]);
       setIsAddItemModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to create inventory item", 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const editItemMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if (selectedDepartments.length === 0) {
+        throw new Error("Please select at least one department");
+      }
+      
+      const baseUnitsPerPackage = data.packageUnit ? parseFloat(data.baseUnitsPerPackage) || 0 : 0;
+      
+      await apiRequest("PUT", `/api/hotels/current/inventory-items/${selectedItem.id}`, {
+        name: data.name,
+        description: data.description || "",
+        sku: data.sku,
+        unit: data.baseUnit,
+        baseUnit: data.baseUnit,
+        packageUnit: data.packageUnit || null,
+        baseUnitsPerPackage: baseUnitsPerPackage > 0 ? baseUnitsPerPackage.toString() : '0',
+        reorderLevel: data.reorderLevel.toString(),
+        storageLocation: data.storageLocation || "",
+        costPerUnit: data.costPerUnit.toString(),
+        departments: selectedDepartments
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/hotels/current/inventory-items"] });
+      toast({ title: "Inventory item updated successfully" });
+      editItemForm.reset();
+      setSelectedDepartments([]);
+      setSelectedItem(null);
+      setIsEditItemModalOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to update inventory item", 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -381,6 +450,33 @@ export default function StorekeeperInventoryManagement() {
                             </div>
                           </div>
                           <div className="flex flex-row sm:flex-row gap-2 w-full sm:w-auto">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedItem(item);
+                                // Handle both new departments array and legacy department string
+                                const depts = item.departments ?? (item.department ? [item.department] : []);
+                                setSelectedDepartments(depts);
+                                editItemForm.reset({
+                                  name: item.name,
+                                  description: item.description || "",
+                                  sku: item.sku,
+                                  baseUnit: item.baseUnit,
+                                  packageUnit: item.packageUnit || "",
+                                  baseUnitsPerPackage: parseFloat(item.baseUnitsPerPackage) || 0,
+                                  reorderLevel: parseFloat(item.reorderLevel) || 0,
+                                  storageLocation: item.storageLocation || "",
+                                  costPerUnit: parseFloat(item.costPerUnit) || 0
+                                });
+                                setIsEditItemModalOpen(true);
+                              }}
+                              data-testid={`button-edit-item-${item.id}`}
+                              className="flex-1 sm:flex-none"
+                            >
+                              <Package className="w-4 h-4 sm:mr-1" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -701,34 +797,46 @@ export default function StorekeeperInventoryManagement() {
                 />
               </div>
 
-              <FormField
-                control={addItemForm.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-department">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="all">All Departments</SelectItem>
-                        <SelectItem value="kitchen">Kitchen</SelectItem>
-                        <SelectItem value="restaurant">Restaurant</SelectItem>
-                        <SelectItem value="bar">Bar</SelectItem>
-                        <SelectItem value="housekeeping">Housekeeping</SelectItem>
-                        <SelectItem value="laundry">Laundry</SelectItem>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                        <SelectItem value="front_desk">Front Desk</SelectItem>
-                        <SelectItem value="security">Security</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-3">
+                <FormLabel>Departments * (Select one or more)</FormLabel>
+                <div className="grid grid-cols-2 gap-3 p-4 border rounded-md">
+                  {[
+                    { value: "all", label: "All Departments" },
+                    { value: "kitchen", label: "Kitchen" },
+                    { value: "restaurant", label: "Restaurant" },
+                    { value: "bar", label: "Bar" },
+                    { value: "housekeeping", label: "Housekeeping" },
+                    { value: "laundry", label: "Laundry" },
+                    { value: "maintenance", label: "Maintenance" },
+                    { value: "front_desk", label: "Front Desk" },
+                    { value: "security", label: "Security" }
+                  ].map((dept) => (
+                    <div key={dept.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`dept-${dept.value}`}
+                        checked={selectedDepartments.includes(dept.value)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedDepartments([...selectedDepartments, dept.value]);
+                          } else {
+                            setSelectedDepartments(selectedDepartments.filter(d => d !== dept.value));
+                          }
+                        }}
+                        data-testid={`checkbox-dept-${dept.value}`}
+                      />
+                      <label
+                        htmlFor={`dept-${dept.value}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {dept.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {selectedDepartments.length === 0 && (
+                  <p className="text-sm text-red-500">Please select at least one department</p>
                 )}
-              />
+              </div>
 
               <div className="flex gap-2 justify-end">
                 <Button 
@@ -745,6 +853,205 @@ export default function StorekeeperInventoryManagement() {
                   data-testid="button-submit-item"
                 >
                   {createItemMutation.isPending ? 'Adding...' : 'Add Item'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Modal */}
+      <Dialog open={isEditItemModalOpen} onOpenChange={setIsEditItemModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Inventory Item</DialogTitle>
+            <p className="text-sm text-muted-foreground">Update inventory item details</p>
+          </DialogHeader>
+          <Form {...editItemForm}>
+            <form onSubmit={editItemForm.handleSubmit((data) => editItemMutation.mutate(data))} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editItemForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Name *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter item name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editItemForm.control}
+                  name="sku"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SKU *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter SKU" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={editItemForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder="Enter description" rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editItemForm.control}
+                  name="baseUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="piece">Piece</SelectItem>
+                          <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                          <SelectItem value="g">Gram (g)</SelectItem>
+                          <SelectItem value="L">Liter (L)</SelectItem>
+                          <SelectItem value="ml">Milliliter (ml)</SelectItem>
+                          <SelectItem value="pack">Pack</SelectItem>
+                          <SelectItem value="dozen">Dozen</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editItemForm.control}
+                  name="reorderLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reorder Level</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          value={field.value || ''} 
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          placeholder="Minimum stock level" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={editItemForm.control}
+                  name="storageLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Storage Location</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Storage location" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editItemForm.control}
+                  name="costPerUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost Per Unit</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          placeholder="Cost per unit" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <FormLabel>Departments * (Select one or more)</FormLabel>
+                <div className="grid grid-cols-2 gap-3 p-4 border rounded-md">
+                  {[
+                    { value: "all", label: "All Departments" },
+                    { value: "kitchen", label: "Kitchen" },
+                    { value: "restaurant", label: "Restaurant" },
+                    { value: "bar", label: "Bar" },
+                    { value: "housekeeping", label: "Housekeeping" },
+                    { value: "laundry", label: "Laundry" },
+                    { value: "maintenance", label: "Maintenance" },
+                    { value: "front_desk", label: "Front Desk" },
+                    { value: "security", label: "Security" }
+                  ].map((dept) => (
+                    <div key={dept.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-dept-${dept.value}`}
+                        checked={selectedDepartments.includes(dept.value)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedDepartments([...selectedDepartments, dept.value]);
+                          } else {
+                            setSelectedDepartments(selectedDepartments.filter(d => d !== dept.value));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`edit-dept-${dept.value}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {dept.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {selectedDepartments.length === 0 && (
+                  <p className="text-sm text-red-500">Please select at least one department</p>
+                )}
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => {
+                    setIsEditItemModalOpen(false);
+                    setSelectedDepartments([]);
+                    setSelectedItem(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={editItemMutation.isPending}
+                >
+                  {editItemMutation.isPending ? 'Updating...' : 'Update Item'}
                 </Button>
               </div>
             </form>
