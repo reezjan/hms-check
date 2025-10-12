@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
+import { Link } from "wouter";
 
 export default function SecurityHeadDashboard() {
   const { user } = useAuth();
@@ -418,18 +419,16 @@ export default function SecurityHeadDashboard() {
                 </DialogContent>
               </Dialog>
 
-              <Button 
-                variant="outline" 
-                className="h-20 flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" 
-                data-testid="button-vehicle-logs"
-                onClick={() => {
-                  const vehiclesTab = document.querySelector('[data-testid="tab-vehicles"]') as HTMLElement;
-                  if (vehiclesTab) vehiclesTab.click();
-                }}
-              >
-                <Car className="h-6 w-6" />
-                <span className="text-sm">View Vehicles</span>
-              </Button>
+              <Link href="/security-head/vehicles">
+                <Button 
+                  variant="outline" 
+                  className="h-20 w-full flex flex-col items-center justify-center gap-0.5 p-0 [&_svg]:size-6" 
+                  data-testid="button-vehicle-logs"
+                >
+                  <Car className="h-6 w-6" />
+                  <span className="text-sm">View Vehicles</span>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
